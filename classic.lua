@@ -16,6 +16,7 @@ local scene = storyboard.newScene()
 
 local botGroup = display.newGroup()
 local regionGroup = display.newGroup()
+local botDragGroup = display.newGroup()
 
 local BOT_WIDTH = 32
 local BOT_HEIGHT = 32
@@ -131,7 +132,7 @@ regionBounce = function()
 				physics.removeBody(botGroup[i])
 		     	physics.addBody(botGroup[i],{filter = {categoryBits = 4, maskBits = 3}})
 		     	botGroup[i].isFixedRotation = true
-		     	botGroup[i]:setLinearVelocity(vx,vy)
+		     	botGroup[i]:setLinearVelocity( math.random(-50, 50), math.random(-50, 50))
 		     end
 		end
 	end
@@ -193,20 +194,27 @@ end
 
 function botTouch( event )
 		
-	local ball = event.target  
+	local bot = event.target  
 
     local phase = event.phase  
     if "began" == phase then  
     	--Runtime:addEventListener("enterFrame", comboListener)
     	event.target:pickup(event.x, event.y)
+    	table.insert(botDragGroup, bot)
     else  
         if "moved" == phase  then  
         	--Runtime:removeEventListener("enterFrame", comboListener)
-            ball:move(event.x, event.y)
+            -- bot:move(event.x, event.y)
+            for i = 1, #botDragGroup do
+            	botDragGroup[i]:move(event.x, event.y)
+            end
             --Runtime:addEventListener("enterFrame", comboListener)
         elseif "ended" == phase or "cancelled" == phase then  
         	--Runtime:removeEventListener("enterFrame", comboListener)
-        	ball:release()
+        	-- bot:release()
+        	for i = 1, #botDragGroup do
+        		botDragGroup[i]:release()
+        	end
         end  
     end  
   
@@ -328,6 +336,34 @@ local function testCollisions(self, event)
 	end
 end
 
+local function comboDrag()
+	for i = 1, #botGroup do
+		for j = 1, #botGroup do
+			if botGroup[i] and botGroup[j] and botGroup[i].x and botGroup[j].x then
+				if hasCollided(botGroup[i], botGroup[j]) and ( (botGroup[i] == botGroup[j]) == false ) then
+					if botGroup[i].color == botGroup[j].color then
+						if botGroup[i].placed == false and botGroup[j].placed == false then
+							if botGroup[i].drag == true and botGroup[j].drag == false then
+								-- botGroup[j]:setLinearVelocity(0, 0)
+								botGroup[j].drag = true
+								botGroup[j]:pickup(botGroup[j].x, botGroup[j].y)
+								table.insert(botDragGroup, botGroup[j])
+							end
+							if botGroup[j].drag == true and botGroup[i].drag == false then
+								-- botGroup[i]:setLinearVelocity(0, 0)
+								botGroup[i].drag = true
+								botGroup[i]:pickup(botGroup[i].x, botGroup[i].y)
+								table.insert(botDragGroup, botGroup[i])
+							end
+						end						
+					end
+				end
+			end
+		end
+	end
+end
+
+
 -- Called when the scene's view does not exist:
 function scene:createScene( event )
 	local group = self.view
@@ -372,6 +408,7 @@ function scene:enterScene( event )
 	Runtime:addEventListener("enterFrame", offScreen)
 	Runtime:addEventListener("enterFrame", regionBounce)
 	Runtime:addEventListener("enterFrame",regionVisible)
+	Runtime:addEventListener("enterFrame", comboDrag)
 end
 
 
@@ -386,6 +423,7 @@ function scene:exitScene( event )
 	-- end
 	Runtime:removeEventListener("enterFrame", offScreen)
 	Runtime:removeEventListener("enterFrame", regionBounce)
+	Runtime:removeEventListener("enterFrame", comboDrag)
 	timer.cancel(createBotsTimer)
 	timer.cancel(createBotsTimer)
 	timer.cancel(changeTimeTimer)

@@ -1,4 +1,5 @@
 module(..., package.seeall)
+local physics = require("physics")
 local vx, vy
 function create(obj)
 	obj.drag = false
@@ -38,7 +39,7 @@ function create(obj)
     obj.drag = false
     display.getCurrentStage():setFocus( nil )  
     obj.bodyType = "dynamic"  
-   obj:setLinearVelocity( -vx, -vy) 
+   obj:setLinearVelocity( -vx, -vy ) 
    obj:prepare("walking")
    obj.xScale, obj.yScale = 1, 1
     obj:play()
