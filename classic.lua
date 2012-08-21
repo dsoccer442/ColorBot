@@ -4,25 +4,141 @@
 --
 ----------------------------------------------------------------------------------
 
+display.setDefault( "background", 255, 255, 255 )
+
 local storyboard = require( "storyboard" )
 local Bot = require("bot")
 local Region = require("region")
 local physics = require("physics")
+require("sprite")
+
 local scene = storyboard.newScene()
 
-local time = 3000
-local gameState = true
 local botGroup = display.newGroup()
+local regionGroup = display.newGroup()
 
-local BOT_WIDTH = 30
-local BOT_HEIGHT = 16
+local BOT_WIDTH = 32
+local BOT_HEIGHT = 32
 local OFFSET_X = BOT_WIDTH / 2
 local OFFSET_Y = BOT_HEIGHT / 2
+local ANIMATION_SPEED = 100
+local MIN_CREATURES = 1
+local MAX_CREATURES = 3
+local REGION_WIDTH = 128
+local REGION_HEIGHT = 86
+local time = 3000
+local gameState = true
+local livesLeft = 3
+
+local background = display.newImage("images/BackgroundBoundaries.png")
+local lives = display.newImage("images/lives 3.png", 20, 295)
+
+local score = display.newText("0", 415, 295,"Helvetica",20)
+
+local refreshLives
+local regionBounce
+local regionVisible
+local botBounce
+local hasCollided
+
+local redBotSheet = sprite.newSpriteSheet("images/Robot4Walking.png", BOT_WIDTH, BOT_WIDTH)
+local redBotSet = sprite.newSpriteSet(redBotSheet, 1, 10)
+local greenBotSheet = sprite.newSpriteSheet("images/Robot1Walking.png", BOT_WIDTH, BOT_WIDTH)
+local greenBotSet = sprite.newSpriteSet(greenBotSheet, 1, 10)
+
+local yellowBotSheet = sprite.newSpriteSheet("images/Robot3Walking.png", BOT_WIDTH, BOT_WIDTH)
+local yellowBotSet = sprite.newSpriteSet(yellowBotSheet, 1, 10)
+local blueBotSheet = sprite.newSpriteSheet("images/Robot2Walking.png", BOT_WIDTH, BOT_WIDTH)
+local blueBotSet = sprite.newSpriteSet(blueBotSheet, 1, 10)
+sprite.add(redBotSet, "walking", 1,3,ANIMATION_SPEED,0)
+sprite.add(greenBotSet, "walking", 1,3,ANIMATION_SPEED,0)
+sprite.add(yellowBotSet, "walking", 1,3,ANIMATION_SPEED,0)
+sprite.add(blueBotSet, "walking", 1,3,ANIMATION_SPEED,0)
+
+sprite.add(redBotSet, "drag", 6,5,ANIMATION_SPEED,0)
+sprite.add(greenBotSet, "drag", 6,5,ANIMATION_SPEED,0)
+sprite.add(yellowBotSet, "drag", 6,5,ANIMATION_SPEED,0)
+sprite.add(blueBotSet, "drag", 6,5,ANIMATION_SPEED,0)
 
 physics.start()
+physics.setGravity(0,0)
+
+--local rectangleBoundary = display.newRect(0,0,REGION_WIDTH,REGION_HEIGHT)
+--rectangleBoundary:setFillColor(0,0,0,0)
+--rectangleBoundary.strokeWidth = 3
+
+local function createRectangle(left,top,width,height,thickness)
+	local upSide = display.newRect(left,top,width,thickness)
+	local leftSide = display.newRect(left,top,thickness,height)
+	local rightSide = display.newRect(left+width,top,thickness,height)
+	local downSide = display.newRect(left,top+height,width,thickness)
+	boundsFilter = {categoryBits = 1, maskBits = 5}
+	physics.addBody(upSide,"static",{bounce = 1, filter = boundsFilter})
+	physics.addBody(leftSide,"static",{bounce = 1, filter = boundsFilter})
+	physics.addBody(rightSide,"static",{bounce = 1, filter = boundsFilter})
+	physics.addBody(downSide,"static",{bounce = 1, filter = boundsFilter})
+	upSide.isVisible = false
+	downSide.isVisible = false
+	leftSide.isVisible = false
+	rightSide.isVisible = false
+end
+createRectangle(0,0,REGION_WIDTH,REGION_HEIGHT,3)
+createRectangle(480-REGION_WIDTH,0,REGION_WIDTH,REGION_HEIGHT,3)
+createRectangle(0,320-REGION_HEIGHT,REGION_WIDTH,REGION_HEIGHT,3)
+createRectangle(480-REGION_WIDTH,320-REGION_HEIGHT,REGION_WIDTH,REGION_HEIGHT,3)
+
+--physics.addBody(rectangleBoundary,"static",{bounce = .5})
+
+refreshLives = function()
+	livesLeft = livesLeft - 1
+	lives:removeSelf()
+	if livesLeft > 0 then
+		if livesLeft == 2 then
+			lives = display.newImage("images/lives 2.png")
+		elseif livesLeft == 1 then
+			lives = display.newImage("images/lives 1.png")
+		end
+	else
+		lives = display.newImage("images/lives 0.png")
+		storyboard.gotoScene("retry", "fade", 800)
+	end
+end
+
+regionVisible = function(event)
+	for j = 1, #regionGroup do
+		for i = 1, #botGroup do
+			if botGroup[i] and botGroup[i].x and botGroup[i].y then
+			-- if (botGroup[i].drag) then
+				--print(hasCollided(botGroup[i], regionGroup[j]))
+			-- end
+				if hasCollided(botGroup[i], regionGroup[j]) and botGroup[i].drag == true  then
+					regionGroup[j].alpha = 1
+					break		
+				end
+				regionGroup[j].alpha = 0
+			end
+		end
+	end
+end
+
+regionBounce = function()
+	for i = 1, #botGroup do
+		if (botGroup[i] and botGroup and botGroup[i].placed) then
+			local region = regionGroup[botGroup[i].color]
+			vx, vy = botGroup[i]:getLinearVelocity()
+			if botGroup[i].placed and botGroup[i].changedFilter == false then
+				botGroup[i].changedFilter = true
+				physics.removeBody(botGroup[i])
+		     	physics.addBody(botGroup[i],{filter = {categoryBits = 4, maskBits = 3}})
+		     	botGroup[i].isFixedRotation = true
+		     	botGroup[i]:setLinearVelocity(vx,vy)
+		     end
+		end
+	end
+end
 
 -- rectangle based
-local function hasCollided(obj1, obj2)
+hasCollided = function(obj1, obj2)
     if obj1 == nil then
         return false
     end
@@ -34,6 +150,20 @@ local function hasCollided(obj1, obj2)
     local up = obj1.contentBounds.yMin <= obj2.contentBounds.yMin and obj1.contentBounds.yMax >= obj2.contentBounds.yMin
     local down = obj1.contentBounds.yMin >= obj2.contentBounds.yMin and obj1.contentBounds.yMin <= obj2.contentBounds.yMax
     return (left or right) and (up or down)
+end
+
+hasFullyCollided = function(obj1, obj2)
+    --obj1 = smaller
+    if obj1 == nil then
+        return false
+    end
+    if obj2 == nil then
+        return false
+    end
+   
+    local x = obj1.contentBounds.xMin >= obj2.contentBounds.xMin and obj1.contentBounds.xMax <= obj2.contentBounds.xMax
+    local y = obj1.contentBounds.yMin >= obj2.contentBounds.yMin and obj1.contentBounds.yMax >= obj2.contentBounds.yMax
+    return (x and y)
 end
 
 -- circle based
@@ -57,108 +187,208 @@ local function hasCollidedCircle(obj1, obj2)
     return false
 end
 
-local function createCreatures()
-	local creature
-	local color = math.random(1, 4)
-	
-	if color == 1 then
-		creature = display.newImage( "images/blue creature.png", 240, 160 )
-		creature.color = 1
-		--table.insert( creatureGroup, creature )
-	elseif color == 2 then
-		creature = display.newImage( "images/green creature.png", 240, 160 )
-		creature.color = 2
-		--table.insert( creatureGroup, creature )
-	elseif	color == 3 then
-		creature = display.newImage( "images/purple creature.png", 240, 160 )
-		creature.color = 3
-		--table.insert( creatureGroup, creature )
-	elseif color == 4 then
-		creature = display.newImage( "images/yellow creature.png", 240, 160 )
-		creature.color = 4
-		--table.insert( creatureGroup, creature )
-	end
+local function virtualPointCreator(x,y)
+	return display.newRect(x,y,0,0)
+end
 
-	table.insert(botGroup, creature)
-	physics.addBody(creature, {density=.8, friction=.3, bounce=.6, radius=10})
-	creature.bodyType = "kinematic"  
-	Bot.create(creature)
-	creature:setLinearVelocity(math.random(-40, 40), math.random(-40, 40 ))
-	creature.myName = creature
+function botTouch( event )
+		
+	local ball = event.target  
+
+    local phase = event.phase  
+    if "began" == phase then  
+    	--Runtime:addEventListener("enterFrame", comboListener)
+    	event.target:pickup(event.x, event.y)
+    else  
+        if "moved" == phase  then  
+        	--Runtime:removeEventListener("enterFrame", comboListener)
+            ball:move(event.x, event.y)
+            --Runtime:addEventListener("enterFrame", comboListener)
+        elseif "ended" == phase or "cancelled" == phase then  
+        	--Runtime:removeEventListener("enterFrame", comboListener)
+        	ball:release()
+        end  
+    end  
+  
+    return true  
+end
+
+local function createBots()
+
+	local botNumber = math.random(MIN_CREATURES, MAX_CREATURES)
+
+	for i = 1, botNumber do
+		local bot
+		
+		local color = math.random(1, 4)
+		
+		if color == 1 then
+			bot = sprite.newSprite(blueBotSet)
+			bot:prepare("walking")
+			bot.color = color
+		elseif color == 2 then
+			bot = sprite.newSprite(greenBotSet)
+			bot:prepare("walking")
+			bot.color = color
+		elseif	color == 3 then
+			bot = sprite.newSprite(redBotSet)
+			bot:prepare("walking")
+			bot.color = color
+		elseif color == 4 then
+			bot = sprite.newSprite(yellowBotSet)
+			bot:prepare("walking")
+			bot.color = color
+		end
+		bot:addEventListener("touch", botTouch)
+		bot:play()
+		bot.x, bot.y = 240, 160
+		--bot:toBack()
+		--background:toBack() --FIX THIS YOU IDIOT #TODO
+
+		table.insert(botGroup, bot)
+		physics.addBody(bot,{bounce = .5, density = 50, filter = {categoryBits = 2, maskBits = 2}})
+		bot.isFixedRotation = true
+		--bot.bodyType = "kinematic"  
+		Bot.create(bot)
+		bot:setLinearVelocity(math.random(-70, 70), math.random(-70, 70 ))
+
+		bot.myName = "bot"
+	end
 end
  
-local function changeCreateCreaturesTime()
+local function changeCreateBotsTime()
 	if time > 1000 then 
 		time = time - 50
 	elseif time > 500 then
 		time = time * .9
 	end
-	timer.pause(createCreaturesTimer)
-	createCreaturesTimer = timer.performWithDelay(time, createCreatures, 0)
-	print(time)
+	timer.pause(createBotsTimer)
+	createBotsTimer = timer.performWithDelay(time, createBots, 0)
+	print(time) --#TODO
 end
 
 local function offScreen()
 	for i = 1, #botGroup do
-		if botGroup[i].x + OFFSET_X < 0 or botGroup[i].x - OFFSET_X > 480 or 
-			botGroup[i].y + OFFSET_Y < 0 or botGroup[i].y - OFFSET_Y > 320 then
-			botGroup:remove(botGroup[i])
-			botGroup[i]:removeSelf()
-			--botGroup[i]:removeSelf()
-			print("test")
+		if (botGroup[i] and botGroup[i].x and botGroup[i].y) then
+			if botGroup[i].x + OFFSET_X < 0 or botGroup[i].x - OFFSET_X > 480 or 
+				botGroup[i].y + OFFSET_Y < 0 or botGroup[i].y - OFFSET_Y > 320 then
+				botGroup[i]:removeSelf()
+				table.remove(botGroup, i)
+				refreshLives()
+			end
 		end
 	end
 end
--- local bot = display.newImage("images/blue.png")
--- physics.addBody(bot, {density=.8, friction=.3, bounce=.6, radius=10})
--- bot.bodyType = "kinematic"  
--- Bot.create(bot)
 
 --bot:setLinearVelocity( 5, 5 )   
 
-local region = display.newImage("images/green.png", 70,70)
-Region.create(region)
+-- local region = display.newImage("images/green.png", 70,70)
+-- Region.create(region)
+local blueRegion, greenRegion, redRegion, yellowRegion = Region.create()
 
+table.insert(regionGroup,blueRegion)
+table.insert(regionGroup,greenRegion)
+table.insert(regionGroup,redRegion)
+table.insert(regionGroup,yellowRegion)
+
+physics.addBody(blueRegion,{isSensor = true, filter = {categoryBits = 2, maskBits = 2}})
+physics.addBody(greenRegion,{isSensor = true, filter = {categoryBits = 2, maskBits = 2}})
+physics.addBody(redRegion,{isSensor = true, filter = {categoryBits = 2, maskBits = 2}})
+physics.addBody(yellowRegion,{isSensor = true, filter = {categoryBits = 2, maskBits = 2}})
+
+local function testCollisions(self, event)
+	if (event.other.myName == "bot") and (self.myName == "region") and (event.other.placed == false) and event.other.drag == false then
+		if  self.color == event.other.color then
+	     	--print("hallelujah")
+	     	
+	     	event.other.placed = true
+	     	
+	     	--event.other.isSensor = true #TODO
+	        event.other:removeEventListener("touch", event.other)
+	        transition.to(event.other, {time = 200, x = self.x, y = self.y})
+	    else
+	    	refreshLives()
+	    	event.other:removeSelf()	
+	    	botGroup[event.other] = nil
+	    	
+	    	--timer.performWithDelay(1000,listener)
+	    	-- table.remove(botGroup, )
+	   --  	 local function removeAfterDelay()
+    --     display.remove(event.other)
+    -- end
+ 
+    -- timer.performWithDelay(2, removeAfterDelay)
+
+	    end
+	    -- if math.abs(self.x - event.other.x) <= math.abs(self.y -event.other.y) then
+	    -- 	transition.to(event.other, {time = 200, x = self.x, y = self.y})
+	    -- else
+	    -- 	transition.to(event.other, {time = 200, x = self.x, y = self.y})
+	    -- end
+	end
+end
 
 -- Called when the scene's view does not exist:
 function scene:createScene( event )
 	local group = self.view
+	group:insert(background)
+	background:toBack()
 end
-
 
 -- Called immediately after scene has moved onscreen:
 function scene:enterScene( event )
 	local group = self.view
 
-	createCreaturesTimer = timer.performWithDelay( time, createCreatures, 0 )
-	changeTimeTimer = timer.performWithDelay( 10000, changeCreateCreaturesTime, 0 )
+	createBotsTimer = timer.performWithDelay( time, createBots, 0 )
+	changeTimeTimer = timer.performWithDelay( 10000, changeCreateBotsTime, 0 )
 
-	--group:insert(bot)
-	--group:insert(region)
-
-	local function testCollisions()
-	    for i=1, #objects do
-	         if hasCollided(bot, region) then
-	         	if bot.drag == false then
-	             --print("collision")
-	             Runtime:removeEventListener("enterFrame", testCollisions)
-	             bot:removeEventListener("touch", bot)
-	             transition.to(bot, {time = 1000, x = region.x, y = region.y})
-	             -- transition.to(bot, {time = 1000, x = 0, y = 0})
-	             -- do what you need to do if they hit each other
-	            end
-	         end
-	    end
+	
+	for i = 1, #regionGroup do
+		group:insert(regionGroup[i])
 	end
-	--Runtime:addEventListener("enterFrame", testCollisions)
+
+	-- local function testCollisions(self,event)
+ --         if event.other.myName == "bot" then
+ --         	--print(hasCollided(event.other, self))
+ --         end
+ --         if (event.other.myName == "bot") and (event.other.placed == false) and (event.other.drag == false and hasFullyCollided(self, event.other)) then
+ --         	print("hallelujah")
+ --         	event.other.placed = true
+ --            event.other:removeEventListener("touch", event.other)
+ --        end
+	-- end
+	
+	for i = 1, #regionGroup do
+		regionGroup[i].collision = testCollisions
+		-- regionGroup[i].touch = regionVisible
+		regionGroup[i]:addEventListener("collision", regionGroup[i])
+		-- Runtime:addEventListener("touch", regionVisible)
+	end
+	--  for i = 1, #botGroup do
+
+	-- botGroup[i]:addEventListener("touch", regionVisible)
+	-- end
+	--Runtime:addEventListener("collision",testCollisions)
 	Runtime:addEventListener("enterFrame", offScreen)
+	Runtime:addEventListener("enterFrame", regionBounce)
+	Runtime:addEventListener("enterFrame",regionVisible)
 end
 
 
 -- Called when scene is about to move offscreen:
 function scene:exitScene( event )
 	local group = self.view
-	
+	for i = 1, #regionGroup do
+		regionGroup[i]:removeEventListener("collision", regionGroup[i])
+	end
+	-- for i = #botGroup, 1 do
+	-- 	group:insert(botGroup[i])
+	-- end
+	Runtime:removeEventListener("enterFrame", offScreen)
+	Runtime:removeEventListener("enterFrame", regionBounce)
+	timer.cancel(createBotsTimer)
+	timer.cancel(createBotsTimer)
+	timer.cancel(changeTimeTimer)
 end
 
 

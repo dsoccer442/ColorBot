@@ -7,7 +7,7 @@ display.setStatusBar(display.HiddenStatusBar)
 
 local storyboard = require "storyboard"
 
-splash = display.newImage("Default.png")
+splash = display.newImage("splash.png")
 
 local function main()
 	timer.pause(splashTimer)
