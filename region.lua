@@ -26,10 +26,7 @@ function create()
 		RegionGroup[i].color = i
 		addFunctions(RegionGroup[i])
 		RegionGroup[i].myName = "region"
-		RegionGroup[i].alpha = .01
-		-- RegionGroup[i]:addEventListener("touch", RegionGroup[i])
-		--RegionGroup[i]:setReferencePoint(display.topLeftReferencePoint)
-		--RegionGroup[i].isVisible = false
+		RegionGroup[i].alpha = 0
 	end
 
 	return blueRegion,greenRegion,redRegion,yellowRegion
@@ -39,12 +36,4 @@ addFunctions = function(obj)
 	function obj:purge()
 
 	end
-	-- function RegionGroup[i]:touch(event)
-	-- 	print("meanie")
-	-- 	if event.phase == "began" then
-	-- 		RegionGroup[i].alpha = transparency
-	-- 	elseif event.phase == "ended" or "canceled" then
-	-- 		RegionGroup[i].alpha = transparency
-	-- 	end
-	-- end	
 end
