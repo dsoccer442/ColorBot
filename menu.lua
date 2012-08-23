@@ -19,6 +19,8 @@ local optionsBtn
 local playText
 local optionsText
 local background
+local conveyorBelt
+local conveyorBot
 
 local function delayPlayStoryboard( event )
 	storyboard.gotoScene( "play" )
@@ -43,7 +45,6 @@ local function onOptionButtonRelease()
 
 	return true
 end
-
 -----------------------------------------------------------------------------------------
 -- BEGINNING OF YOUR IMPLEMENTATION
 -- 
@@ -89,14 +90,19 @@ function scene:createScene( event )
 	background.x, background.y = 0, 0
 	
 	-- create/position logo/title image on upper-half of the screen
-	local titleLogo = display.newImageRect( "logo.png", 264, 42 )
-	titleLogo:setReferencePoint( display.CenterReferencePoint )
-	titleLogo.x = display.contentWidth * 0.5
-	titleLogo.y = 100
 	
+	local conveyorBelt = display.newImage("conveyor belt.png")
+	conveyorBelt.x = 100
+	conveyorBelt.y = 160
+
+	local conveyorBot = display.newImage("conveyor bot.png")
+	conveyorBot.x = 0
+	conveyorBot.y = 113
+
 	-- all display objects must be inserted into group
 	group:insert( background )
-	group:insert( titleLogo )
+	group:insert( conveyorBot )
+	group:insert( conveyorBelt )
 	group:insert( playBtn )
 	group:insert( optionsBtn )
 	
@@ -105,7 +111,12 @@ function scene:createScene( event )
 		transition.to(playBtn, {x=620, time=1000})
 	end
 
-	timer.performWithDelay(100, openDoors, 1)	
+	local function moveConveyorBot()
+		transition.to(conveyorBot, { x=220, time = 2000 })
+	end
+
+	timer.performWithDelay(100, openDoors, 1)
+	timer.performWithDelay(200, moveConveyorBot, 1)	
 end
 
 -- Called immediately after scene has moved onscreen:
@@ -125,7 +136,7 @@ function scene:exitScene( event )
 end
 
 -- If scene's view is removed, scene:destroyScene() will be called just prior to:
-function scene:purgeScene( event )
+function scene:destroyScene( event )
 	local group = self.view
 	group:removeSelf()
 	group = nil
@@ -137,8 +148,6 @@ function scene:purgeScene( event )
 		optionsBtn:removeSelf()
 		optionsBtn = nil
 	end
-
-
 end
 
 -----------------------------------------------------------------------------------------
