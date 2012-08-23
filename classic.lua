@@ -17,6 +17,10 @@ local scene = storyboard.newScene()
 local botGroup = display.newGroup()
 local regionGroup = display.newGroup()
 local botDragGroup = display.newGroup()
+local blueGroup = display.newGroup()
+local greenGroup = display.newGroup()
+local redGroup = display.newGroup()
+local yellowGroup = display.newGroup()
 
 local BOT_WIDTH = 32
 local BOT_HEIGHT = 32
@@ -40,7 +44,6 @@ local random = math.random
 local comboDrag
 local createBots
 local createRectangle
-local hasCollided
 local refreshLives
 local regionBounce
 
@@ -110,7 +113,7 @@ end
 
 regionBounce = function()
 	for i = 1, #botGroup do
-		if (botGroup[i].placed) then
+		if (botGroup[i].placed and botGroup[i]) then
 			local region = regionGroup[botGroup[i].color]
 			local bot = botGroup[i]
 			vx, vy = botGroup[i]:getLinearVelocity()
@@ -123,20 +126,6 @@ regionBounce = function()
 		     end
 		end
 	end
-end
-
-hasCollided = function(obj1, obj2)
-    if obj1 == nil then
-        return false
-    end
-    if obj2 == nil then
-        return false
-    end
-    local left = obj1.contentBounds.xMin <= obj2.contentBounds.xMin and obj1.contentBounds.xMax >= obj2.contentBounds.xMin
-    local right = obj1.contentBounds.xMin >= obj2.contentBounds.xMin and obj1.contentBounds.xMin <= obj2.contentBounds.xMax
-    local up = obj1.contentBounds.yMin <= obj2.contentBounds.yMin and obj1.contentBounds.yMax >= obj2.contentBounds.yMin
-    local down = obj1.contentBounds.yMin >= obj2.contentBounds.yMin and obj1.contentBounds.yMin <= obj2.contentBounds.yMax
-    return (left or right) and (up or down)
 end
 
 function botTouch( event )
@@ -166,7 +155,6 @@ function botTouch( event )
         elseif "ended" == phase or "cancelled" == phase then  
         	--Runtime:removeEventListener("enterFrame", comboListener)
         	-- bot:release()
-        	
         	for i = #botDragGroup, 1, -1 do
         		--print("a")
         		if botDragGroup[i] then
@@ -283,6 +271,44 @@ local function testCollisions(self, event)
 		        event.other:removeEventListener("touch", botTouch)
 		        transition.to(event.other, {time = 200, x = self.x, y = self.y})
 		        timer.performWithDelay(1,regionBounce,1)
+		        botGroup:remove(event.other)
+
+		        if event.other.color == 1 then
+		        	table.insert(blueGroup, event.other)
+		        elseif event.other.color == 2 then
+		        	table.insert(greenGroup, event.other)
+		        elseif event.other.color == 3 then
+		        	table.insert(redGroup, event.other)
+		        elseif event.other.color == 4 then
+		        	table.insert(yellowGroup, event.other)
+		       	end
+
+		       	print(#blueGroup)
+		       	if #blueGroup >= 5 then
+
+		       		for i = #blueGroup, 1, -1 do
+		       			transition.to(blueGroup[i], {time = 200, x = -16})
+		       			livesLeft = livesLeft + #blueGroup
+		       		end
+		       	elseif #greenGroup >= 5 then
+		       		for i = #greenGroup, 1, -1 do
+		       			-- greenGroup[i]:removeSelf()
+		       			transition.to(greenGroup[i], {time = 200, x = -16})
+		       			livesLeft = livesLeft + #greenGroup
+		       		end
+		       	elseif #redGroup >= 5 then
+		       		for i = #redGroup, 1, -1 do
+		       			-- redGroup[i]:removeSelf()
+		       			transition.to(redGroup[i], {time = 200, x = -16})
+		       			livesLeft = livesLeft + #redGroup
+		       		end
+		       	elseif #yellowGroup >= 5 then
+		       		for i = #yellowGroup, 1, -1 do
+		       			-- yellowGroup[i]:removeSelf()
+		       			transition.to(yellowGroup[i], {time = 200, x = -16})
+		       			livesLeft = livesLeft + #yellowGroup
+		       		end
+		       	end
 		    else
 		    	refreshLives()
 		    	event.other:removeSelf()	
@@ -308,35 +334,6 @@ local function testCollisions(self, event)
 	    -- end
 	end
 end
-
--- local function comboDrag()
--- 	for i = 1, #botGroup do
--- 		for j = 1, #botGroup do
--- 			if botGroup[i] and botGroup[j] and botGroup[i].x and botGroup[j].x then
--- 				if hasCollided(botGroup[i], botGroup[j]) and ( (botGroup[i] == botGroup[j]) == false ) then
--- 					if botGroup[i].color == botGroup[j].color then
--- 						if botGroup[i].placed == false and botGroup[j].placed == false then
--- 							if botGroup[i].drag == true and botGroup[j].drag == false then
--- 								-- botGroup[j]:setLinearVelocity(0, 0)
--- 								botGroup[j].drag = true
--- 								botGroup[j]:pickup(botGroup[j].x, botGroup[j].y)
--- 								table.insert(botDragGroup, botGroup[j])
--- 								--print(#botDragGroup)
--- 							end
--- 							if botGroup[j].drag == true and botGroup[i].drag == false then
--- 								-- botGroup[i]:setLinearVelocity(0, 0)
--- 								botGroup[i].drag = true
--- 								botGroup[i]:pickup(botGroup[i].x, botGroup[i].y)
--- 								table.insert(botDragGroup, botGroup[i])
--- 								--print(#botDragGroup)
--- 							end
--- 						end						
--- 					end
--- 				end
--- 			end
--- 		end
--- 	end
--- end
 
 comboDrag = function(self, event )
 	-- print("whatever2")
@@ -394,9 +391,6 @@ function scene:exitScene( event )
 	for i = 1, #regionGroup do
 		regionGroup[i]:removeEventListener("collision", regionGroup[i])
 	end
-	-- for i = #botGroup, 1 do
-	-- 	group:insert(botGroup[i])
-	-- end
 	Runtime:removeEventListener("enterFrame", offScreen)
 	--Runtime:removeEventListener("enterFrame", comboDrag)
 	timer.cancel(createBotsTimer)
