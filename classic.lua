@@ -47,6 +47,12 @@ local createBoundary
 local refreshLives
 local regionBounce
 
+-- Slash line properties (line that shows up when you move finger across the screen)
+local maxPoints = 5
+local lineThickness = 15
+local lineFadeTime = 250
+local endPoints = {}
+
 local redBotSheet = sprite.newSpriteSheet("images/Robot4Walking.png", BOT_WIDTH, BOT_WIDTH)
 local redBotSet = sprite.newSpriteSet(redBotSheet, 1, 10)
 local greenBotSheet = sprite.newSpriteSheet("images/Robot1Walking.png", BOT_WIDTH, BOT_WIDTH)
@@ -123,6 +129,50 @@ end
 
 function botTouch( event )
 	local bot = event.target  
+
+	
+	 -- -- Play a slash sound
+	 -- if(endPoints ~= nil and endPoints[1] ~= nil) then
+	 --  local distance = math.sqrt(math.pow(event.x - endPoints[1].x, 2) + math.pow(event.y - endPoints[1].y, 2))
+	 --  if(distance > minDistanceForSlashSound and slashSoundEnabled == true) then 
+	 --   playRandomSlashSound();  
+	 --   slashSoundEnabled = false
+	 --   timer.performWithDelay(minTimeBetweenSlashes, function(event) slashSoundEnabled = true end)
+	 --  end
+	 -- end
+	 
+	 -- Insert a new point into the front of the array
+	 table.insert(endPoints, 1, {x = event.x, y = event.y, line= nil}) 
+
+	 -- Remove any excessed points
+	 if(#endPoints > maxPoints) then 
+	  table.remove(endPoints)
+	 end
+
+	if #endPoints > 1 then
+	 for i,v in ipairs(endPoints) do
+	  local line = display.newLine(v.x, v.y, event.x, event.y)
+	
+	  if bot.color == 1 then
+	  	line:setColor(31,150,250,255)
+	  elseif bot.color == 2 then 
+		line:setColor(14,174,93,255)
+	  elseif bot.color == 3 then 
+		line:setColor(255,0,0,255)
+	  elseif bot.color == 4 then 
+		line:setColor(255,204,0,255)
+	  end
+	  line.width = lineThickness
+	  transition.to(line, {time = lineFadeTime, alpha = 0, width = 0, onComplete = function(event) line:removeSelf() end})  
+	 end
+	end
+
+	 if(event.phase == "ended") then  
+	  while(#endPoints > 0) do
+	   table.remove(endPoints)
+	  end
+	 end
+	 --- end slash code
 
     local phase = event.phase  
     if "began" == phase then  
@@ -287,6 +337,7 @@ local function testCollisions(self, event)
 		    	refreshLives()
 		    	event.other:removeSelf()	
 		    	botGroup[event.other] = nil
+		    	self.alpha = 0
 			end
 		elseif event.phase == "began" then
 			self.alpha = 1
@@ -307,6 +358,49 @@ comboDrag = function(self, event )
 		end
 	end
 end
+
+-- -- Slash line properties (line that shows up when you move finger across the screen)
+-- local maxPoints = 5
+-- local lineThickness = 20
+-- local lineFadeTime = 250
+-- local endPoints = {}
+
+
+-- Draws the slash line that appears when the user swipes his/her finger across the screen
+-- function drawSlashLine(event)
+ 
+--  -- -- Play a slash sound
+--  -- if(endPoints ~= nil and endPoints[1] ~= nil) then
+--  --  local distance = math.sqrt(math.pow(event.x - endPoints[1].x, 2) + math.pow(event.y - endPoints[1].y, 2))
+--  --  if(distance > minDistanceForSlashSound and slashSoundEnabled == true) then 
+--  --   playRandomSlashSound();  
+--  --   slashSoundEnabled = false
+--  --   timer.performWithDelay(minTimeBetweenSlashes, function(event) slashSoundEnabled = true end)
+--  --  end
+--  -- end
+ 
+--  -- Insert a new point into the front of the array
+--  table.insert(endPoints, 1, {x = event.x, y = event.y, line= nil}) 
+
+--  -- Remove any excessed points
+--  if(#endPoints > maxPoints) then 
+--   table.remove(endPoints)
+--  end
+
+-- if #endPoints > 1 then
+--  for i,v in ipairs(endPoints) do
+--   local line = display.newLine(v.x, v.y, event.x, event.y)
+--   line.width = lineThickness
+--   transition.to(line, {time = lineFadeTime, alpha = 0, width = 0, onComplete = function(event) line:removeSelf() end})  
+--  end
+-- end
+
+--  if(event.phase == "ended") then  
+--   while(#endPoints > 0) do
+--    table.remove(endPoints)
+--   end
+--  end
+-- end
 
 
 -- Called when the scene's view does not exist:
@@ -334,6 +428,7 @@ function scene:enterScene( event )
 	end
 
 	Runtime:addEventListener("enterFrame", offScreen)
+	--Runtime:addEventListener("touch", drawSlashLine)
 end
 
 
