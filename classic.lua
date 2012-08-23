@@ -293,8 +293,7 @@ local function testCollisions(self, event)
 			if  self.color == event.other.color then
 		     	
 		     	event.other.placed = true
-
-		     	self.alpha = 0
+		     	self:lightUp()
 
 		        event.other:removeEventListener("touch", botTouch)
 		        transition.to(event.other, {time = 200, x = self.x, y = self.y})
@@ -341,7 +340,7 @@ local function testCollisions(self, event)
 			end
 		elseif event.phase == "began" then
 			self.alpha = 1
-		elseif event.phase == "ended" or event.other.placed then
+		elseif event.phase == "ended"then
 			self.alpha = 0
 		end
 	end

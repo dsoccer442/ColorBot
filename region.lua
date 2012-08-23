@@ -36,4 +36,23 @@ addFunctions = function(obj)
 	function obj:purge()
 
 	end
+	function obj:lightUp()
+		obj:setFillColor(255,255,255,255)
+		local function fadeOut()
+			transition.to( obj, { alpha=0, time=500 } )
+			if obj.color == 1 then
+				obj:setFillColor(31,150,250,transparency)
+			elseif obj.color == 2 then
+				obj:setFillColor(14,174,93,transparency)
+			elseif obj.color == 3 then
+				obj:setFillColor(255,0,0,transparency)
+			elseif obj.color == 4 then
+				obj:setFillColor(255,204,0,transparency)
+			end
+		end
+		transition.to( obj, { alpha=1, time=100, onComplete = fadeOut} )
+
+		-- 
+		-- transition.to( r, { alpha=0, time=1000 } )
+	end
 end
