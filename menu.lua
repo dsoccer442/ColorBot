@@ -93,11 +93,11 @@ function scene:createScene( event )
 	
 	local conveyorBelt = display.newImage("conveyor belt.png")
 	conveyorBelt.x = 100
-	conveyorBelt.y = 160
+	conveyorBelt.y = 260
 
 	local conveyorBot = display.newImage("conveyor bot.png")
 	conveyorBot.x = 0
-	conveyorBot.y = 113
+	conveyorBot.y = 213
 
 	-- all display objects must be inserted into group
 	group:insert( background )

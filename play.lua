@@ -23,16 +23,22 @@ local function onBackBtnRelease( event )
 	return true
 end
 
+local function delayClassicStoryboard( event )
+	storyboard.gotoScene("classic")
+end
+
 local function onClassicBtnRelease( event )
 	transition.to(classicBtn, { x=240, time=1000})
 	transition.to(arcadeBtn, { x=480, time=1000})
-	storyboard.gotoScene( "classic" )
+	timer.performWithDelay( 1000, delayClassicStoryboard, 1)
+	return true
 end
 
 local function onArcadeBtnRelease( event )
 	transition.to(classicBtn, { x=240, time=1000})
 	transition.to(arcadeBtn, { x=480, time=1000})
-	storyboard.gotoScene( "classic" )
+	timer.performWithDelay( 1000, delayClassicStoryboard, 1)
+	return true
 end
 
 -- Called when the scene's view does not exist:
@@ -107,7 +113,6 @@ function scene:exitScene( event )
 	-----------------------------------------------------------------------------
 	
 end
-
 
 -- Called prior to the removal of scene's "view" (display group)
 function scene:destroyScene( event )

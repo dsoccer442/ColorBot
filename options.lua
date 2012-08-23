@@ -14,9 +14,13 @@ local widget = require "widget"
 ---------------------------------------------------------------------------------
 
 local sfxBtn
+local sfxBtnOff
 local musicBtn
+local musicBtnOff
 local backBtn
 local rightDoor
+local sfxLabel
+local musicLabel
 
 local function delayMenuStoryboard( event )
 	storyboard.gotoScene("menu")
@@ -43,11 +47,31 @@ function scene:createScene( event )
 		return true
 	end
 
-	sfxBtn = display.newRect(120, 120, 50, 50)
-	sfxBtn:setFillColor(832, 345, 24)
+	sfxBtn = display.newImage("on button.png", 0, 0)
+	sfxBtn.x = display.contentWidth/2
+	sfxBtn.y = 80
+	sfxBtn:setReferencePoint(display.CenterReferencePoint)
 
-	musicBtn = display.newRect(200, 200, 50, 50)
-	musicBtn:setFillColor(43, 53, 989)
+	sfxBtnOff = display.newImage("off button.png")
+	sfxBtnOff.x = display.contentWidth/2
+	sfxBtnOff.y = 80
+	sfxBtnOff:setReferencePoint(display.CenterReferencePoint)
+	sfxBtnOff.isVisible = false
+
+	sfxLabel = display.newRetinaText("SFX", 140, 60, native.systemFont, 36)
+
+	musicBtn = display.newImage("on button.png", 0, 0)
+	musicBtn.x = display.contentWidth/2
+	musicBtn.y = 140
+	musicBtn:setReferencePoint(display.CenterReferencePoint)
+
+	musicBtnOff = display.newImage("off button.png")
+	musicBtnOff.x = display.contentWidth/2
+	musicBtnOff.y = 140
+	musicBtnOff:setReferencePoint(display.CenterReferencePoint)
+	musicBtnOff.isVisible = false
+
+	musicLabel = display.newRetinaText("Music", 100, 120, native.systemFont, 36)
 
 	backBtn = widget.newButton{
 		label="back",
@@ -71,9 +95,40 @@ function scene:createScene( event )
 	timer.performWithDelay( 100, openDoors, 1 )
 
 	group:insert(sfxBtn)
+	group:insert(sfxBtnOff)
 	group:insert(musicBtn)
+	group:insert(musicBtnOff)
+	group:insert(sfxLabel)
+	group:insert(musicLabel)
 	group:insert(backBtn)
 	group:insert(rightDoor)
+
+	local function changeSfx( event )
+		if sfxBtn.isVisible == true then
+			sfxBtnOff.isVisible = true
+			sfxBtn.isVisible = false
+		elseif sfxBtnOff.isVisible == true then
+			sfxBtnOff.isVisible = false
+			sfxBtn.isVisible = true		
+		end
+	end
+
+	sfxBtn:addEventListener( "tap", changeSfx )
+	sfxBtnOff:addEventListener( "tap", changeSfx )
+
+	local function changeMusic( event )
+		if musicBtn.isVisible == true then
+			musicBtnOff.isVisible = true
+			musicBtn.isVisible = false
+		elseif musicBtnOff.isVisible == true then
+			musicBtnOff.isVisible = false
+			musicBtn.isVisible = true		
+		end
+	end
+
+	musicBtn:addEventListener( "tap", changeMusic )
+	musicBtnOff:addEventListener( "tap", changeMusic )
+
 end
 
 -- Called immediately after scene has moved onscreen:
@@ -100,15 +155,6 @@ end
 -- Called prior to the removal of scene's "view" (display group)
 function scene:destroyScene( event )
 	local group = self.view
-	group:removeSelf()
-	group = nil
-
-	
-	if backBtn then
-		backBtn:removeSelf()	-- widgets must be manually removed
-		backBtn = nil
-	end
-	
 end
 
 
