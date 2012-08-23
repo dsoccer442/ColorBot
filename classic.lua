@@ -307,19 +307,20 @@ physics.addBody(yellowRegion,{isSensor = true, filter = {categoryBits = 2, maskB
 local function testCollisions(self, event)
 	if (event.other.myName == "bot") and (self.myName == "region") and (event.other.placed == false) and event.other.drag == false then
 		if  self.color == event.other.color then
-	     	--print("hallelujah")
+	     	--print(event.other.placed)
 	     	
 	     	event.other.placed = true
 	     	
 	     	--event.other.isSensor = true #TODO
-	        event.other:removeEventListener("touch", event.other)
+
+	        event.other:removeEventListener("touch", botTouch)
 	        transition.to(event.other, {time = 200, x = self.x, y = self.y})
 	    else
 	    	refreshLives()
 	    	event.other:removeSelf()	
 	    	botGroup[event.other] = nil
 	    	
-	    	--timer.performWithDelay(1000,listener)
+	    	timer.performWithDelay(1000,regionBounce,1)
 	    	-- table.remove(botGroup, )
 	   --  	 local function removeAfterDelay()
     --     display.remove(event.other)
