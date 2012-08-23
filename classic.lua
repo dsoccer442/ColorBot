@@ -33,14 +33,14 @@ local livesLeft = 3
 
 local background = display.newImage("images/BackgroundBoundaries.png")
 local lives = display.newImage("images/lives 3.png", 20, 295)
-
 local score = display.newText("0", 415, 295,"Helvetica",20)
 
-local refreshLives
-local regionBounce
-local regionVisible
-local botBounce
+local random = math.random
+
+local createBots
+local createRectangle
 local hasCollided
+local refreshLives
 
 local redBotSheet = sprite.newSpriteSheet("images/Robot4Walking.png", BOT_WIDTH, BOT_WIDTH)
 local redBotSet = sprite.newSpriteSet(redBotSheet, 1, 10)
@@ -68,12 +68,12 @@ physics.setGravity(0,0)
 --rectangleBoundary:setFillColor(0,0,0,0)
 --rectangleBoundary.strokeWidth = 3
 
-local function createRectangle(left,top,width,height,thickness)
+createRectangle = function(left,top,width,height,thickness)
 	local upSide = display.newRect(left,top,width,thickness)
 	local leftSide = display.newRect(left,top,thickness,height)
 	local rightSide = display.newRect(left+width,top,thickness,height)
 	local downSide = display.newRect(left,top+height,width,thickness)
-	boundsFilter = {categoryBits = 1, maskBits = 5}
+	local boundsFilter = {categoryBits = 1, maskBits = 5}
 	physics.addBody(upSide,"static",{bounce = 1, filter = boundsFilter})
 	physics.addBody(leftSide,"static",{bounce = 1, filter = boundsFilter})
 	physics.addBody(rightSide,"static",{bounce = 1, filter = boundsFilter})
@@ -104,41 +104,8 @@ refreshLives = function()
 		storyboard.gotoScene("retry", "fade", 800)
 	end
 end
+--#TODO finger offscreen, don't lose
 
-regionVisible = function(event)
-	for j = 1, #regionGroup do
-		for i = 1, #botGroup do
-			if botGroup[i] and botGroup[i].x and botGroup[i].y then
-			-- if (botGroup[i].drag) then
-				--print(hasCollided(botGroup[i], regionGroup[j]))
-			-- end
-				if hasCollided(botGroup[i], regionGroup[j]) and botGroup[i].drag == true  then
-					regionGroup[j].alpha = 1
-					break		
-				end
-				regionGroup[j].alpha = 0
-			end
-		end
-	end
-end
-
-regionBounce = function()
-	for i = 1, #botGroup do
-		if (botGroup[i] and botGroup and botGroup[i].placed) then
-			local region = regionGroup[botGroup[i].color]
-			vx, vy = botGroup[i]:getLinearVelocity()
-			if botGroup[i].placed and botGroup[i].changedFilter == false then
-				botGroup[i].changedFilter = true
-				physics.removeBody(botGroup[i])
-		     	physics.addBody(botGroup[i],{filter = {categoryBits = 4, maskBits = 3}})
-		     	botGroup[i].isFixedRotation = true
-		     	botGroup[i]:setLinearVelocity( math.random(-50, 50), math.random(-50, 50))
-		     end
-		end
-	end
-end
-
--- rectangle based
 hasCollided = function(obj1, obj2)
     if obj1 == nil then
         return false
@@ -153,47 +120,7 @@ hasCollided = function(obj1, obj2)
     return (left or right) and (up or down)
 end
 
-hasFullyCollided = function(obj1, obj2)
-    --obj1 = smaller
-    if obj1 == nil then
-        return false
-    end
-    if obj2 == nil then
-        return false
-    end
-   
-    local x = obj1.contentBounds.xMin >= obj2.contentBounds.xMin and obj1.contentBounds.xMax <= obj2.contentBounds.xMax
-    local y = obj1.contentBounds.yMin >= obj2.contentBounds.yMin and obj1.contentBounds.yMax >= obj2.contentBounds.yMax
-    return (x and y)
-end
-
--- circle based
-local function hasCollidedCircle(obj1, obj2)
-    if obj1 == nil then
-        return false
-    end
-    if obj2 == nil then
-        return false
-    end
-    local sqrt = math.sqrt
-
-    local dx =  obj1.x - obj2.x;
-    local dy =  obj1.y - obj2.y;
-
-    local distance = sqrt(dx*dx + dy*dy);
-    local objectSize = (obj2.contentWidth/2) + (obj1.contentWidth/2)
-    if distance < objectSize then
-        return true
-    end
-    return false
-end
-
-local function virtualPointCreator(x,y)
-	return display.newRect(x,y,0,0)
-end
-
 function botTouch( event )
-		
 	local bot = event.target  
 
     local phase = event.phase  
@@ -212,8 +139,14 @@ function botTouch( event )
         elseif "ended" == phase or "cancelled" == phase then  
         	--Runtime:removeEventListener("enterFrame", comboListener)
         	-- bot:release()
-        	for i = 1, #botDragGroup do
-        		botDragGroup[i]:release()
+        	
+        	for i = #botDragGroup, 1, -1 do
+        		--print("a")
+        		if botDragGroup[i] then
+        			
+	        		botDragGroup[i]:release()
+	        		table.remove(botDragGroup, i)
+        		end
         	end
         end  
     end  
@@ -221,14 +154,14 @@ function botTouch( event )
     return true  
 end
 
-local function createBots()
+createBots = function()
 
-	local botNumber = math.random(MIN_CREATURES, MAX_CREATURES)
+	local botNumber = random(MIN_CREATURES, MAX_CREATURES)
 
 	for i = 1, botNumber do
 		local bot
 		
-		local color = math.random(1, 4)
+		local color = random(1, 4)
 		
 		if color == 1 then
 			bot = sprite.newSprite(blueBotSet)
@@ -254,11 +187,11 @@ local function createBots()
 		--background:toBack() --FIX THIS YOU IDIOT #TODO
 
 		table.insert(botGroup, bot)
-		physics.addBody(bot,{bounce = .5, density = 50, filter = {categoryBits = 2, maskBits = 2}})
+		physics.addBody(bot,{bounce = .5, density = 50, filter = {categoryBits = 2, maskBits = 10}})
 		bot.isFixedRotation = true
 		--bot.bodyType = "kinematic"  
 		Bot.create(bot)
-		bot:setLinearVelocity(math.random(-70, 70), math.random(-70, 70 ))
+		bot:setLinearVelocity(random(-70, 70), random(-70, 70 ))
 
 		bot.myName = "bot"
 	end
@@ -299,36 +232,45 @@ table.insert(regionGroup,greenRegion)
 table.insert(regionGroup,redRegion)
 table.insert(regionGroup,yellowRegion)
 
-physics.addBody(blueRegion,{isSensor = true, filter = {categoryBits = 2, maskBits = 2}})
-physics.addBody(greenRegion,{isSensor = true, filter = {categoryBits = 2, maskBits = 2}})
-physics.addBody(redRegion,{isSensor = true, filter = {categoryBits = 2, maskBits = 2}})
-physics.addBody(yellowRegion,{isSensor = true, filter = {categoryBits = 2, maskBits = 2}})
+physics.addBody(blueRegion,{isSensor = true, filter = {categoryBits = 2, maskBits = 10}})
+physics.addBody(greenRegion,{isSensor = true, filter = {categoryBits = 2, maskBits = 10}})
+physics.addBody(redRegion,{isSensor = true, filter = {categoryBits = 2, maskBits = 10}})
+physics.addBody(yellowRegion,{isSensor = true, filter = {categoryBits = 2, maskBits = 10}})
 
 local function testCollisions(self, event)
-	if (event.other.myName == "bot") and (self.myName == "region") and (event.other.placed == false) and event.other.drag == false then
-		if  self.color == event.other.color then
-	     	--print(event.other.placed)
-	     	
-	     	event.other.placed = true
-	     	
-	     	--event.other.isSensor = true #TODO
+	print("c")
+	if (event.other.myName == "bot")  then
+		if event.other.drag == false and (event.other.placed == false) then
+			if  self.color == event.other.color then
+		     	--print(event.other.placed)
+		     	
+		     	event.other.placed = true
 
-	        event.other:removeEventListener("touch", botTouch)
-	        transition.to(event.other, {time = 200, x = self.x, y = self.y})
-	    else
-	    	refreshLives()
-	    	event.other:removeSelf()	
-	    	botGroup[event.other] = nil
-	    	
-	    	timer.performWithDelay(1000,regionBounce,1)
-	    	-- table.remove(botGroup, )
-	   --  	 local function removeAfterDelay()
-    --     display.remove(event.other)
-    -- end
- 
-    -- timer.performWithDelay(2, removeAfterDelay)
+		     	self.alpha = 0
+		     	
+		     	--event.other.isSensor = true #TODO
 
-	    end
+		        event.other:removeEventListener("touch", botTouch)
+		        transition.to(event.other, {time = 200, x = self.x, y = self.y})
+		        timer.performWithDelay(1,regionBounce,1)
+		    else
+		    	refreshLives()
+		    	event.other:removeSelf()	
+		    	botGroup[event.other] = nil
+		    	
+		    	--timer.performWithDelay(1,regionBounce,1)
+		    	-- table.remove(botGroup, )
+		   --  	 local function removeAfterDelay()
+			    --     display.remove(event.other)
+			    -- end
+			 
+			    -- timer.performWithDelay(2, removeAfterDelay)
+			end
+		elseif event.phase == "began" then
+			self.alpha = 1
+		elseif event.phase == "ended" or event.other.placed then
+			self.alpha = 0
+		end
 	    -- if math.abs(self.x - event.other.x) <= math.abs(self.y -event.other.y) then
 	    -- 	transition.to(event.other, {time = 200, x = self.x, y = self.y})
 	    -- else
@@ -349,12 +291,14 @@ local function comboDrag()
 								botGroup[j].drag = true
 								botGroup[j]:pickup(botGroup[j].x, botGroup[j].y)
 								table.insert(botDragGroup, botGroup[j])
+								--print(#botDragGroup)
 							end
 							if botGroup[j].drag == true and botGroup[i].drag == false then
 								-- botGroup[i]:setLinearVelocity(0, 0)
 								botGroup[i].drag = true
 								botGroup[i]:pickup(botGroup[i].x, botGroup[i].y)
 								table.insert(botDragGroup, botGroup[i])
+								--print(#botDragGroup)
 							end
 						end						
 					end
@@ -383,32 +327,13 @@ function scene:enterScene( event )
 	for i = 1, #regionGroup do
 		group:insert(regionGroup[i])
 	end
-
-	-- local function testCollisions(self,event)
- --         if event.other.myName == "bot" then
- --         	--print(hasCollided(event.other, self))
- --         end
- --         if (event.other.myName == "bot") and (event.other.placed == false) and (event.other.drag == false and hasFullyCollided(self, event.other)) then
- --         	print("hallelujah")
- --         	event.other.placed = true
- --            event.other:removeEventListener("touch", event.other)
- --        end
-	-- end
 	
 	for i = 1, #regionGroup do
 		regionGroup[i].collision = testCollisions
-		-- regionGroup[i].touch = regionVisible
 		regionGroup[i]:addEventListener("collision", regionGroup[i])
-		-- Runtime:addEventListener("touch", regionVisible)
 	end
-	--  for i = 1, #botGroup do
 
-	-- botGroup[i]:addEventListener("touch", regionVisible)
-	-- end
-	--Runtime:addEventListener("collision",testCollisions)
 	Runtime:addEventListener("enterFrame", offScreen)
-	Runtime:addEventListener("enterFrame", regionBounce)
-	Runtime:addEventListener("enterFrame",regionVisible)
 	Runtime:addEventListener("enterFrame", comboDrag)
 end
 
@@ -423,7 +348,6 @@ function scene:exitScene( event )
 	-- 	group:insert(botGroup[i])
 	-- end
 	Runtime:removeEventListener("enterFrame", offScreen)
-	Runtime:removeEventListener("enterFrame", regionBounce)
 	Runtime:removeEventListener("enterFrame", comboDrag)
 	timer.cancel(createBotsTimer)
 	timer.cancel(createBotsTimer)
