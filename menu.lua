@@ -30,7 +30,8 @@ end
 local function onPlayBtnRelease()
 	transition.to(playBtn, { x= 480, time=1000 })
 	transition.to(optionsBtn, {x = 240, time=1000 })
-	timer.performWithDelay( 1000, delayPlayStoryboard, 1)	
+	timer.performWithDelay( 1000, delayPlayStoryboard, 1)
+	playBtn.onRelease = nil	
 	return true	-- indicates successful touch
 end
 
@@ -42,7 +43,7 @@ local function onOptionButtonRelease()
 	transition.to(playBtn, { x= 480, time=1000, alpha=1 })
 	transition.to(optionsBtn, {x = 240, time=1000, alpha=1 })
 	timer.performWithDelay( 1000, delayOptionsStoryboard, 1)
-
+	optionsBtn.onRelease = nil
 	return true
 end
 -----------------------------------------------------------------------------------------
@@ -61,7 +62,7 @@ function scene:createScene( event )
 
 	-- create a widget button (which will loads level1.lua on release)
 	playBtn = widget.newButton{
-		label="play",
+		label="p\nl\na\ny",
 		xOffset=-70,
 		default="button.png",
 		over="button.png",
@@ -73,7 +74,7 @@ function scene:createScene( event )
 	playBtn.y = 0
 
 	optionsBtn = widget.newButton{
-		label="options",
+		label="o\np\nt\ni\no\nn\ns",
 		xOffset=70,
 		default = "options.png",
 		over="options.png",
@@ -123,8 +124,6 @@ end
 function scene:enterScene( event )
 	local group = self.view
 	storyboard.removeAll()
-	
-	
 end
 
 -- Called when scene is about to move offscreen:

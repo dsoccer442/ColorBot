@@ -33,6 +33,7 @@ local function onBackBtnRelease( event )
 	transition.to(backBtn, { x=240, time=1000 } )
 	transition.to(rightDoor, { x=480, time=1000 } )
 	timer.performWithDelay( 1000, delayMenuStoryboard, 1 )
+	backBtn.onRelease = nil
 	return true
 end
 
@@ -44,6 +45,7 @@ function scene:createScene( event )
 		transition.to(backBtn, {x=100, time=1000 } )
 		transition.to(rightDoor, {x=720, time=1000 } )
 		print("open doors")
+
 		return true
 	end
 

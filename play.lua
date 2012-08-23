@@ -31,6 +31,7 @@ local function onClassicBtnRelease( event )
 	transition.to(classicBtn, { x=240, time=1000})
 	transition.to(arcadeBtn, { x=480, time=1000})
 	timer.performWithDelay( 1000, delayClassicStoryboard, 1)
+	classicBtn.onRelease = nil
 	return true
 end
 
@@ -38,6 +39,7 @@ local function onArcadeBtnRelease( event )
 	transition.to(classicBtn, { x=240, time=1000})
 	transition.to(arcadeBtn, { x=480, time=1000})
 	timer.performWithDelay( 1000, delayClassicStoryboard, 1)
+	arcadeBtn.onRelease = nil
 	return true
 end
 
