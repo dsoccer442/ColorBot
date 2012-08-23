@@ -7,6 +7,7 @@
 local storyboard = require( "storyboard" )
 local scene = storyboard.newScene()
 
+
 -- include Corona's "widget" library
 local widget = require "widget"
 
@@ -14,19 +15,32 @@ local widget = require "widget"
 
 -- forward declarations and other locals
 local playBtn
-local hiscoreBtn
+local optionsBtn
+local playText
+local optionsText
+local background
+
+local function delayPlayStoryboard( event )
+	storyboard.gotoScene( "play" )
+end
 
 -- 'onRelease' event listener for playBtn
 local function onPlayBtnRelease()
-	
-	-- go to level1.lua scene
-	storyboard.gotoScene( "classic", "fromTop", 500 )
-	
+	transition.to(playBtn, { x= 480, time=1000 })
+	transition.to(optionsBtn, {x = 240, time=1000 })
+	timer.performWithDelay( 1000, delayPlayStoryboard, 1)	
 	return true	-- indicates successful touch
 end
 
-local function onHiscoreBtnRelease()
-	storyboard.gotoScene( "highscore", "fade", 500 )
+local function delayOptionsStoryboard( event )
+	storyboard.gotoScene("options")
+end
+
+local function onOptionButtonRelease()
+	transition.to(playBtn, { x= 480, time=1000, alpha=1 })
+	transition.to(optionsBtn, {x = 240, time=1000, alpha=1 })
+	timer.performWithDelay( 1000, delayOptionsStoryboard, 1)
+
 	return true
 end
 
@@ -42,6 +56,33 @@ end
 function scene:createScene( event )
 	local group = self.view
 
+
+
+	-- create a widget button (which will loads level1.lua on release)
+	playBtn = widget.newButton{
+		label="play",
+		xOffset=-70,
+		default="button.png",
+		over="button.png",
+		width=240, height=320,
+		onRelease = onPlayBtnRelease	-- event listener function
+	}
+	playBtn:setReferencePoint(display.TopRightReferencePoint)
+	playBtn.x = 480
+	playBtn.y = 0
+
+	optionsBtn = widget.newButton{
+		label="options",
+		xOffset=70,
+		default = "options.png",
+		over="options.png",
+		width=240, height=320,
+		onRelease = onOptionButtonRelease
+	}
+	optionsBtn:setReferencePoint(display.TopRightReferencePoint)
+	optionsBtn.x = 240
+	optionsBtn.y = 0
+
 	-- display a background image
 	local background = display.newImageRect( "images/BackgroundBoundaries.png", display.contentWidth, display.contentHeight )
 	background:setReferencePoint( display.TopLeftReferencePoint )
@@ -53,47 +94,25 @@ function scene:createScene( event )
 	titleLogo.x = display.contentWidth * 0.5
 	titleLogo.y = 100
 	
-	-- create a widget button (which will loads level1.lua on release)
-	playBtn = widget.newButton{
-		label="Play Now",
-		labelColor = { default={255}, over={128} },
-		default="button.png",
-		over="button-over.png",
-		width=154, height=40,
-		onRelease = onPlayBtnRelease	-- event listener function
-	}
-	playBtn:setReferencePoint( display.CenterReferencePoint )
-	playBtn.x = display.contentWidth*0.5
-	playBtn.y = display.contentHeight - 125
-	
-	
-
-	hiscoreBtn = widget.newButton{
-		label ="High Scores",
-		labelColor = { default={255}, over={128} },
-		default = "hiscore.png",
-		over="hiscore-over.png",
-		width=154, height=40,
-		onRelease = onHiscoreBtnRelease
-	}
-
-	hiscoreBtn:setReferencePoint( display.CenterReferencePoint )
-	hiscoreBtn.x = display.contentWidth/2
-	hiscoreBtn.y = display.contentHeight - 50
-	
--- all display objects must be inserted into group
+	-- all display objects must be inserted into group
 	group:insert( background )
 	group:insert( titleLogo )
 	group:insert( playBtn )
-	group:insert( hiscoreBtn )
+	group:insert( optionsBtn )
 	
+	local function openDoors( event )
+		transition.to(optionsBtn, {x=100, time=1000})
+		transition.to(playBtn, {x=620, time=1000})
+	end
+
+	timer.performWithDelay(100, openDoors, 1)	
 end
 
 -- Called immediately after scene has moved onscreen:
 function scene:enterScene( event )
 	local group = self.view
+	storyboard.removeAll()
 	
-	-- INSERT code here (e.g. start timers, load audio, start listeners, etc.)
 	
 end
 
@@ -106,7 +125,7 @@ function scene:exitScene( event )
 end
 
 -- If scene's view is removed, scene:destroyScene() will be called just prior to:
-function scene:destroyScene( event )
+function scene:purgeScene( event )
 	local group = self.view
 	group:removeSelf()
 	group = nil
@@ -115,9 +134,11 @@ function scene:destroyScene( event )
 	if playBtn then
 		playBtn:removeSelf()	-- widgets must be manually removed
 		playBtn = nil
-		hiscoreBtn:removeSelf()
-		hiscoreBtn = nil
+		optionsBtn:removeSelf()
+		optionsBtn = nil
 	end
+
+
 end
 
 -----------------------------------------------------------------------------------------
@@ -136,7 +157,7 @@ scene:addEventListener( "exitScene", scene )
 -- "destroyScene" event is dispatched before view is unloaded, which can be
 -- automatically unloaded in low memory situations, or explicitly via a call to
 -- storyboard.purgeScene() or storyboard.removeScene().
-scene:addEventListener( "destroyScene", scene )
+scene:addEventListener( "purgeScene", scene )
 
 -----------------------------------------------------------------------------------------
 
