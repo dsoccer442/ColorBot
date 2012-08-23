@@ -21,10 +21,11 @@ function create(obj)
         obj:setLinearVelocity( 0, 0 )  
         --obj.angularVelocity = 0  
 
-      physics.removeBody(obj)
-      physics.addBody(obj,{filter = {categoryBits = 8, maskBits = 2}})
-      obj.isFixedRotation = true
+      -- physics.removeBody(obj)
+      -- physics.addBody(obj,{isSensor = true, filter = {categoryBits = 8, maskBits = 2}})
+      -- obj.isFixedRotation = true
       --obj:setLinearVelocity(random(-50, 50), random(-50, 50))
+      obj.isSensor = true
   		obj:toFront()
   		obj:prepare("drag")
   		obj.xScale, obj.yScale = 1.25, 1.25
@@ -37,14 +38,14 @@ function create(obj)
 		end
 	end
   function obj:release()
-    physics.removeBody(obj)
-    physics.addBody(obj,{bounce = .5, density = 50, filter = {categoryBits = 2, maskBits = 2}})
-    obj.isFixedRotation = true
+    -- physics.removeBody(obj)
+    -- physics.addBody(obj,{bounce = .5, density = 50, filter = {categoryBits = 2, maskBits = 2}})
+    -- obj.isFixedRotation = true
+    obj.isSensor = false
     obj.drag = false
     display.getCurrentStage():setFocus( nil )  
     obj.bodyType = "dynamic"  
    obj:setLinearVelocity( -vx, -vy ) 
-   print("test")
    obj:prepare("walking")
    obj.xScale, obj.yScale = 1, 1
     obj:play()

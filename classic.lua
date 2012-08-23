@@ -37,10 +37,12 @@ local score = display.newText("0", 415, 295,"Helvetica",20)
 
 local random = math.random
 
+local comboDrag
 local createBots
 local createRectangle
 local hasCollided
 local refreshLives
+local regionBounce
 
 local redBotSheet = sprite.newSpriteSheet("images/Robot4Walking.png", BOT_WIDTH, BOT_WIDTH)
 local redBotSet = sprite.newSpriteSet(redBotSheet, 1, 10)
@@ -106,6 +108,23 @@ refreshLives = function()
 end
 --#TODO finger offscreen, don't lose
 
+regionBounce = function()
+	for i = 1, #botGroup do
+		if (botGroup[i].placed) then
+			local region = regionGroup[botGroup[i].color]
+			local bot = botGroup[i]
+			vx, vy = botGroup[i]:getLinearVelocity()
+			if bot.changedFilter == false then
+				bot.changedFilter = true
+				physics.removeBody(botGroup[i])
+		     	physics.addBody(botGroup[i],{filter = {categoryBits = 4, maskBits = 1}})
+		     	botGroup[i].isFixedRotation = true
+		     	botGroup[i]:setLinearVelocity(random(-50, 50), random(-50, 50))
+		     end
+		end
+	end
+end
+
 hasCollided = function(obj1, obj2)
     if obj1 == nil then
         return false
@@ -127,12 +146,20 @@ function botTouch( event )
     if "began" == phase then  
     	--Runtime:addEventListener("enterFrame", comboListener)
     	event.target:pickup(event.x, event.y)
+    	bot.collision = comboDrag
+    	bot:addEventListener("collision", bot)
     	table.insert(botDragGroup, bot)
+    	physics.removeBody(bot)
+      	physics.addBody(bot,{isSensor = true, filter = {categoryBits = 8, maskBits = 2}})
+      	bot.isFixedRotation = true
     else  
         if "moved" == phase  then  
         	--Runtime:removeEventListener("enterFrame", comboListener)
             -- bot:move(event.x, event.y)
             for i = 1, #botDragGroup do
+            	-- if botDragGroup[i].xScale == 1 then 
+            	-- 	botDragGroup[i]:pickup(botDragGroup[i].x,botDragGroup[i].x)
+            	-- end
             	botDragGroup[i]:move(event.x, event.y)
             end
             --Runtime:addEventListener("enterFrame", comboListener)
@@ -143,8 +170,12 @@ function botTouch( event )
         	for i = #botDragGroup, 1, -1 do
         		--print("a")
         		if botDragGroup[i] then
-        			
+	        		
+	        		 physics.removeBody(botDragGroup[i])
+				    physics.addBody(botDragGroup[i],{bounce = .5, density = 50, filter = {categoryBits = 2, maskBits = 2}})
+				    botDragGroup[i].isFixedRotation = true
 	        		botDragGroup[i]:release()
+	        		botDragGroup[i]:removeEventListener("collision", comboDrag)
 	        		table.remove(botDragGroup, i)
         		end
         	end
@@ -238,7 +269,6 @@ physics.addBody(redRegion,{isSensor = true, filter = {categoryBits = 2, maskBits
 physics.addBody(yellowRegion,{isSensor = true, filter = {categoryBits = 2, maskBits = 10}})
 
 local function testCollisions(self, event)
-	print("c")
 	if (event.other.myName == "bot")  then
 		if event.other.drag == false and (event.other.placed == false) then
 			if  self.color == event.other.color then
@@ -279,31 +309,51 @@ local function testCollisions(self, event)
 	end
 end
 
-local function comboDrag()
-	for i = 1, #botGroup do
-		for j = 1, #botGroup do
-			if botGroup[i] and botGroup[j] and botGroup[i].x and botGroup[j].x then
-				if hasCollided(botGroup[i], botGroup[j]) and ( (botGroup[i] == botGroup[j]) == false ) then
-					if botGroup[i].color == botGroup[j].color then
-						if botGroup[i].placed == false and botGroup[j].placed == false then
-							if botGroup[i].drag == true and botGroup[j].drag == false then
-								-- botGroup[j]:setLinearVelocity(0, 0)
-								botGroup[j].drag = true
-								botGroup[j]:pickup(botGroup[j].x, botGroup[j].y)
-								table.insert(botDragGroup, botGroup[j])
-								--print(#botDragGroup)
-							end
-							if botGroup[j].drag == true and botGroup[i].drag == false then
-								-- botGroup[i]:setLinearVelocity(0, 0)
-								botGroup[i].drag = true
-								botGroup[i]:pickup(botGroup[i].x, botGroup[i].y)
-								table.insert(botDragGroup, botGroup[i])
-								--print(#botDragGroup)
-							end
-						end						
-					end
-				end
-			end
+-- local function comboDrag()
+-- 	for i = 1, #botGroup do
+-- 		for j = 1, #botGroup do
+-- 			if botGroup[i] and botGroup[j] and botGroup[i].x and botGroup[j].x then
+-- 				if hasCollided(botGroup[i], botGroup[j]) and ( (botGroup[i] == botGroup[j]) == false ) then
+-- 					if botGroup[i].color == botGroup[j].color then
+-- 						if botGroup[i].placed == false and botGroup[j].placed == false then
+-- 							if botGroup[i].drag == true and botGroup[j].drag == false then
+-- 								-- botGroup[j]:setLinearVelocity(0, 0)
+-- 								botGroup[j].drag = true
+-- 								botGroup[j]:pickup(botGroup[j].x, botGroup[j].y)
+-- 								table.insert(botDragGroup, botGroup[j])
+-- 								--print(#botDragGroup)
+-- 							end
+-- 							if botGroup[j].drag == true and botGroup[i].drag == false then
+-- 								-- botGroup[i]:setLinearVelocity(0, 0)
+-- 								botGroup[i].drag = true
+-- 								botGroup[i]:pickup(botGroup[i].x, botGroup[i].y)
+-- 								table.insert(botDragGroup, botGroup[i])
+-- 								--print(#botDragGroup)
+-- 							end
+-- 						end						
+-- 					end
+-- 				end
+-- 			end
+-- 		end
+-- 	end
+-- end
+
+comboDrag = function(self, event )
+	-- print("whatever2")
+	local bot = event.other
+	if event.other.myName == "bot" and bot.drag == false and self.drag == true then
+		if self.color == bot.color then
+			--if bot.placed == false then
+					-- botGroup[j]:setLinearVelocity(0, 0)
+					bot.drag = true
+
+					
+					bot:pickup(bot.x, bot.y)
+					bot.collision = comboDrag
+					bot:addEventListener("collision", bot)
+					table.insert(botDragGroup, bot)
+					--timer.performWithDelay(1,pickupBot,1)
+			--end						
 		end
 	end
 end
@@ -334,7 +384,7 @@ function scene:enterScene( event )
 	end
 
 	Runtime:addEventListener("enterFrame", offScreen)
-	Runtime:addEventListener("enterFrame", comboDrag)
+	--Runtime:addEventListener("enterFrame", comboDrag)
 end
 
 
@@ -348,7 +398,7 @@ function scene:exitScene( event )
 	-- 	group:insert(botGroup[i])
 	-- end
 	Runtime:removeEventListener("enterFrame", offScreen)
-	Runtime:removeEventListener("enterFrame", comboDrag)
+	--Runtime:removeEventListener("enterFrame", comboDrag)
 	timer.cancel(createBotsTimer)
 	timer.cancel(createBotsTimer)
 	timer.cancel(changeTimeTimer)
