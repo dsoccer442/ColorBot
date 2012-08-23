@@ -215,9 +215,11 @@ local function offScreen()
 		if (botGroup[i] and botGroup[i].x and botGroup[i].y) then
 			if botGroup[i].x + OFFSET_X < 0 or botGroup[i].x - OFFSET_X > 480 or 
 				botGroup[i].y + OFFSET_Y < 0 or botGroup[i].y - OFFSET_Y > 320 then
+				if botGroup[i].placed == false then
+					refreshLives()
+				end
 				botGroup[i]:removeSelf()
 				table.remove(botGroup, i)
-				refreshLives()
 			end
 		end
 	end
@@ -263,22 +265,22 @@ local function testCollisions(self, event)
 
 		       		for i = #blueGroup, 1, -1 do
 		       			transition.to(blueGroup[i], {time = 200, x = -16})
-		       			livesLeft = livesLeft + #blueGroup
+		       			table.remove(blueGroup, i)
 		       		end
 		       	elseif #greenGroup >= 5 then
 		       		for i = #greenGroup, 1, -1 do
-		       			transition.to(greenGroup[i], {time = 200, x = -16})
-		       			livesLeft = livesLeft + #greenGroup
+		       			transition.to(greenGroup[i], {time = 200, x = 496})
+		       			table.remove(greenGroup, i)
 		       		end
 		       	elseif #redGroup >= 5 then
 		       		for i = #redGroup, 1, -1 do
 		       			transition.to(redGroup[i], {time = 200, x = -16})
-		       			livesLeft = livesLeft + #redGroup
+		       			table.remove(redGroup, i)
 		       		end
 		       	elseif #yellowGroup >= 5 then
 		       		for i = #yellowGroup, 1, -1 do
-		       			transition.to(yellowGroup[i], {time = 200, x = -16})
-		       			livesLeft = livesLeft + #yellowGroup
+		       			transition.to(yellowGroup[i], {time = 200, x = 496})
+		       			table.remove(yellowGroup, i)
 		       		end
 		       	end
 		    else
