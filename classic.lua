@@ -34,6 +34,11 @@ local REGION_HEIGHT = 86
 local time = 3000
 local gameState = true
 local livesLeft = 3
+-- Slash line properties (line that shows up when you move finger across the screen)
+local maxPoints = 5
+local lineThickness = 15
+local lineFadeTime = 250
+local endPoints = {}
 
 local background = display.newImage("images/BackgroundBoundaries.png")
 local lives = display.newImage("images/lives 3.png", 20, 295)
@@ -47,11 +52,7 @@ local createBoundary
 local refreshLives
 local regionBounce
 
--- Slash line properties (line that shows up when you move finger across the screen)
-local maxPoints = 5
-local lineThickness = 15
-local lineFadeTime = 250
-local endPoints = {}
+local blueRegion, greenRegion, redRegion, yellowRegion = Region.create()
 
 local redBotSheet = sprite.newSpriteSheet("images/Robot4Walking.png", BOT_WIDTH, BOT_WIDTH)
 local redBotSet = sprite.newSpriteSet(redBotSheet, 1, 10)
@@ -62,18 +63,6 @@ local yellowBotSheet = sprite.newSpriteSheet("images/Robot3Walking.png", BOT_WID
 local yellowBotSet = sprite.newSpriteSet(yellowBotSheet, 1, 10)
 local blueBotSheet = sprite.newSpriteSheet("images/Robot2Walking.png", BOT_WIDTH, BOT_WIDTH)
 local blueBotSet = sprite.newSpriteSet(blueBotSheet, 1, 10)
-sprite.add(redBotSet, "walking", 1,3,ANIMATION_SPEED,0)
-sprite.add(greenBotSet, "walking", 1,3,ANIMATION_SPEED,0)
-sprite.add(yellowBotSet, "walking", 1,3,ANIMATION_SPEED,0)
-sprite.add(blueBotSet, "walking", 1,3,ANIMATION_SPEED,0)
-
-sprite.add(redBotSet, "drag", 6,5,ANIMATION_SPEED,0)
-sprite.add(greenBotSet, "drag", 6,5,ANIMATION_SPEED,0)
-sprite.add(yellowBotSet, "drag", 6,5,ANIMATION_SPEED,0)
-sprite.add(blueBotSet, "drag", 6,5,ANIMATION_SPEED,0)
-
-physics.start()
-physics.setGravity(0,0)
 
 createBoundary = function(left,top,width,height,thickness)
 	local upSide = display.newRect(left,top,width,thickness)
@@ -90,10 +79,6 @@ createBoundary = function(left,top,width,height,thickness)
 	leftSide.isVisible = false
 	rightSide.isVisible = false
 end
-createBoundary(0,0,REGION_WIDTH,REGION_HEIGHT,3)
-createBoundary(480-REGION_WIDTH,0,REGION_WIDTH,REGION_HEIGHT,3)
-createBoundary(0,320-REGION_HEIGHT,REGION_WIDTH,REGION_HEIGHT,3)
-createBoundary(480-REGION_WIDTH,320-REGION_HEIGHT,REGION_WIDTH,REGION_HEIGHT,3)
 
 refreshLives = function()
 	livesLeft = livesLeft - 1
@@ -112,16 +97,16 @@ end
 
 regionBounce = function()
 	for i = 1, #botGroup do
-		if (botGroup[i].placed and botGroup[i]) then
-			local region = regionGroup[botGroup[i].color]
-			local bot = botGroup[i]
-			vx, vy = botGroup[i]:getLinearVelocity()
+		local bot = botGroup[i]
+		if (bot.placed and bot) then
+			local region = regionGroup[bot.color]
+			vx, vy = bot:getLinearVelocity()
 			if bot.changedFilter == false then
 				bot.changedFilter = true
-				physics.removeBody(botGroup[i])
-		     	physics.addBody(botGroup[i],{filter = {categoryBits = 4, maskBits = 1}})
-		     	botGroup[i].isFixedRotation = true
-		     	botGroup[i]:setLinearVelocity(random(-50, 50), random(-50, 50))
+				physics.removeBody(bot)
+		     	physics.addBody(bot,{filter = {categoryBits = 4, maskBits = 1}})
+		     	bot.isFixedRotation = true
+		     	bot:setLinearVelocity(random(-50, 50), random(-50, 50))
 		     end
 		end
 	end
@@ -130,7 +115,6 @@ end
 function botTouch( event )
 	local bot = event.target  
 
-	
 	 -- -- Play a slash sound
 	 -- if(endPoints ~= nil and endPoints[1] ~= nil) then
 	 --  local distance = math.sqrt(math.pow(event.x - endPoints[1].x, 2) + math.pow(event.y - endPoints[1].y, 2))
@@ -141,7 +125,6 @@ function botTouch( event )
 	 --  end
 	 -- end
 	 
-	 -- Insert a new point into the front of the array
 	 table.insert(endPoints, 1, {x = event.x, y = event.y, line= nil}) 
 
 	 -- Remove any excessed points
@@ -153,65 +136,59 @@ function botTouch( event )
 	 for i,v in ipairs(endPoints) do
 	  local line = display.newLine(v.x, v.y, event.x, event.y)
 	
-	  if bot.color == 1 then
+	local color = bot.color
+	  if color == 1 then
 	  	line:setColor(31,150,250,255)
-	  elseif bot.color == 2 then 
+	  elseif color == 2 then 
 		line:setColor(14,174,93,255)
-	  elseif bot.color == 3 then 
+	  elseif color == 3 then 
 		line:setColor(255,0,0,255)
-	  elseif bot.color == 4 then 
+	  elseif color == 4 then 
 		line:setColor(255,204,0,255)
 	  end
 	  line.width = lineThickness
 	  transition.to(line, {time = lineFadeTime, alpha = 0, width = 0, onComplete = function(event) line:removeSelf() end})  
 	 end
 	end
-
-	 if(event.phase == "ended") then  
-	  while(#endPoints > 0) do
-	   table.remove(endPoints)
-	  end
-	 end
 	 --- end slash code
 
     local phase = event.phase  
     if "began" == phase then  
-    	event.target:pickup(event.x, event.y)
+    	bot:pickup(event.x, event.y)
     	bot.collision = comboDrag
     	bot:addEventListener("collision", bot)
     	table.insert(botDragGroup, bot)
     	physics.removeBody(bot)
       	physics.addBody(bot,{isSensor = true, filter = {categoryBits = 8, maskBits = 2}})
       	bot.isFixedRotation = true
-    else  
-        if "moved" == phase  then  
+    elseif "moved" == phase  then  
             for i = 1, #botDragGroup do
             	botDragGroup[i]:move(event.x, event.y)
             end
-        elseif "ended" == phase or "cancelled" == phase then  
-        	for i = #botDragGroup, 1, -1 do
-        		if botDragGroup[i] then
-	        		physics.removeBody(botDragGroup[i])
-				    physics.addBody(botDragGroup[i],{bounce = .5, density = 50, filter = {categoryBits = 2, maskBits = 2}})
-				    bot:removeEventListener("collision", bot)
-				    botDragGroup[i].isFixedRotation = true
-	        		botDragGroup[i]:release()
-	        		botDragGroup[i]:removeEventListener("collision", comboDrag)
-	        		table.remove(botDragGroup, i)
-	        		--#TODO need to figure out what to do when the bot is deleted because the touch went offscreen. cancel touch event? (if so edit this elseif clause.)
-        		end
-        	end
-        end  
-    end  
-  
-    return true  
+    elseif "ended" == phase or "cancelled" == phase then  
+    	while(#endPoints > 0) do
+   			table.remove(endPoints)
+  		end
+    	for i = #botDragGroup, 1, -1 do
+    		local dragBot = botDragGroup[i]
+    		if dragBot then
+        		physics.removeBody(dragBot)
+			    physics.addBody(dragBot,{bounce = .5, density = 50, filter = {categoryBits = 2, maskBits = 2}})
+			    dragBot:removeEventListener("collision", dragBot)
+			    dragBot.isFixedRotation = true
+        		dragBot:release()
+        		table.remove(botDragGroup, i)
+        		--#TODO need to figure out what to do when the bot is deleted because the touch went offscreen. cancel touch event? (if so edit this elseif clause.)
+    		end
+    	end
+    end   
 end
 
 createBots = function()
 
-	local botNumber = random(MIN_CREATURES, MAX_CREATURES)
+	--local botNumber = random(MIN_CREATURES, MAX_CREATURES)
 
-	for i = 1, botNumber do
+	for i = 1, random(MIN_CREATURES, MAX_CREATURES) do
 		local bot
 		
 		local color = random(1, 4)
@@ -262,52 +239,42 @@ end
 
 local function offScreen()
 	for i = 1, #botGroup do
-		if (botGroup[i] and botGroup[i].x and botGroup[i].y) then
-			if botGroup[i].x + OFFSET_X < 0 or botGroup[i].x - OFFSET_X > 480 or 
-				botGroup[i].y + OFFSET_Y < 0 or botGroup[i].y - OFFSET_Y > 320 then
-				if botGroup[i].placed == false then
+		local bot = botGroup[i]
+		if (bot and bot.x and bot.y) then
+			if bot.x + OFFSET_X < 0 or bot.x - OFFSET_X > 480 or 
+				bot.y + OFFSET_Y < 0 or bot.y - OFFSET_Y > 320 then
+				if bot.placed == false then
 					refreshLives()
 				end
-				botGroup[i]:removeSelf()
+				bot:removeSelf()
 				table.remove(botGroup, i)
 			end
 		end
 	end
 end
 
-local blueRegion, greenRegion, redRegion, yellowRegion = Region.create()
-
-table.insert(regionGroup,blueRegion)
-table.insert(regionGroup,greenRegion)
-table.insert(regionGroup,redRegion)
-table.insert(regionGroup,yellowRegion)
-
-physics.addBody(blueRegion,{isSensor = true, filter = {categoryBits = 2, maskBits = 10}})
-physics.addBody(greenRegion,{isSensor = true, filter = {categoryBits = 2, maskBits = 10}})
-physics.addBody(redRegion,{isSensor = true, filter = {categoryBits = 2, maskBits = 10}})
-physics.addBody(yellowRegion,{isSensor = true, filter = {categoryBits = 2, maskBits = 10}})
-
 local function testCollisions(self, event)
-	if (event.other.myName == "bot")  then
-		if event.other.drag == false and (event.other.placed == false) then
-			if  self.color == event.other.color then
+	local bot = event.other
+	if (bot.myName == "bot")  then
+		if bot.drag == false and (bot.placed == false) then
+			if  self.color == bot.color then
 		     	
-		     	event.other.placed = true
+		     	bot.placed = true
 		     	self:lightUp()
 
-		        event.other:removeEventListener("touch", botTouch)
-		        transition.to(event.other, {time = 200, x = self.x, y = self.y})
+		        bot:removeEventListener("touch", botTouch)
+		        transition.to(bot, {time = 200, x = self.x, y = self.y})
 		        timer.performWithDelay(1,regionBounce,1)
-		        botGroup:remove(event.other)
+		        botGroup:remove(bot)
 
-		        if event.other.color == 1 then
-		        	table.insert(blueGroup, event.other)
-		        elseif event.other.color == 2 then
-		        	table.insert(greenGroup, event.other)
-		        elseif event.other.color == 3 then
-		        	table.insert(redGroup, event.other)
-		        elseif event.other.color == 4 then
-		        	table.insert(yellowGroup, event.other)
+		        if bot.color == 1 then
+		        	table.insert(blueGroup, bot)
+		        elseif bot.color == 2 then
+		        	table.insert(greenGroup, bot)
+		        elseif bot.color == 3 then
+		        	table.insert(redGroup, bot)
+		        elseif bot.color == 4 then
+		        	table.insert(yellowGroup, bot)
 		       	end
 
 		       	if #blueGroup >= 5 then
@@ -334,8 +301,8 @@ local function testCollisions(self, event)
 		       	end
 		    else
 		    	refreshLives()
-		    	event.other:removeSelf()	
-		    	botGroup[event.other] = nil
+		    	bot:removeSelf()	
+		    	botGroup[bot] = nil
 		    	self.alpha = 0
 			end
 		elseif event.phase == "began" then
@@ -348,65 +315,49 @@ end
 
 comboDrag = function(self, event )
 	local bot = event.other
-	if event.other.myName == "bot" and bot.drag == false and self.drag == true then
+	if bot.myName == "bot" and bot.drag == false and self.drag == true then
 		if self.color == bot.color then
-					bot:pickup(bot.x, bot.y)
-					bot.collision = comboDrag
-					bot:addEventListener("collision", bot)
-					table.insert(botDragGroup, bot)					
+			bot:pickup(bot.x, bot.y)
+			bot.collision = comboDrag
+			bot:addEventListener("collision", bot)
+			table.insert(botDragGroup, bot)	
 		end
 	end
 end
-
--- -- Slash line properties (line that shows up when you move finger across the screen)
--- local maxPoints = 5
--- local lineThickness = 20
--- local lineFadeTime = 250
--- local endPoints = {}
-
-
--- Draws the slash line that appears when the user swipes his/her finger across the screen
--- function drawSlashLine(event)
- 
---  -- -- Play a slash sound
---  -- if(endPoints ~= nil and endPoints[1] ~= nil) then
---  --  local distance = math.sqrt(math.pow(event.x - endPoints[1].x, 2) + math.pow(event.y - endPoints[1].y, 2))
---  --  if(distance > minDistanceForSlashSound and slashSoundEnabled == true) then 
---  --   playRandomSlashSound();  
---  --   slashSoundEnabled = false
---  --   timer.performWithDelay(minTimeBetweenSlashes, function(event) slashSoundEnabled = true end)
---  --  end
---  -- end
- 
---  -- Insert a new point into the front of the array
---  table.insert(endPoints, 1, {x = event.x, y = event.y, line= nil}) 
-
---  -- Remove any excessed points
---  if(#endPoints > maxPoints) then 
---   table.remove(endPoints)
---  end
-
--- if #endPoints > 1 then
---  for i,v in ipairs(endPoints) do
---   local line = display.newLine(v.x, v.y, event.x, event.y)
---   line.width = lineThickness
---   transition.to(line, {time = lineFadeTime, alpha = 0, width = 0, onComplete = function(event) line:removeSelf() end})  
---  end
--- end
-
---  if(event.phase == "ended") then  
---   while(#endPoints > 0) do
---    table.remove(endPoints)
---   end
---  end
--- end
-
 
 -- Called when the scene's view does not exist:
 function scene:createScene( event )
 	local group = self.view
 	group:insert(background)
 	background:toBack()
+
+	sprite.add(redBotSet, "walking", 1,3,ANIMATION_SPEED,0)
+	sprite.add(greenBotSet, "walking", 1,3,ANIMATION_SPEED,0)
+	sprite.add(yellowBotSet, "walking", 1,3,ANIMATION_SPEED,0)
+	sprite.add(blueBotSet, "walking", 1,3,ANIMATION_SPEED,0)
+
+	sprite.add(redBotSet, "drag", 6,5,ANIMATION_SPEED,0)
+	sprite.add(greenBotSet, "drag", 6,5,ANIMATION_SPEED,0)
+	sprite.add(yellowBotSet, "drag", 6,5,ANIMATION_SPEED,0)
+	sprite.add(blueBotSet, "drag", 6,5,ANIMATION_SPEED,0)
+
+	physics.start()
+	physics.setGravity(0,0)
+
+	createBoundary(0,0,REGION_WIDTH,REGION_HEIGHT,3)
+	createBoundary(480-REGION_WIDTH,0,REGION_WIDTH,REGION_HEIGHT,3)
+	createBoundary(0,320-REGION_HEIGHT,REGION_WIDTH,REGION_HEIGHT,3)
+	createBoundary(480-REGION_WIDTH,320-REGION_HEIGHT,REGION_WIDTH,REGION_HEIGHT,3)
+
+	table.insert(regionGroup,blueRegion)
+	table.insert(regionGroup,greenRegion)
+	table.insert(regionGroup,redRegion)
+	table.insert(regionGroup,yellowRegion)
+
+	physics.addBody(blueRegion,{isSensor = true, filter = {categoryBits = 2, maskBits = 10}})
+	physics.addBody(greenRegion,{isSensor = true, filter = {categoryBits = 2, maskBits = 10}})
+	physics.addBody(redRegion,{isSensor = true, filter = {categoryBits = 2, maskBits = 10}})
+	physics.addBody(yellowRegion,{isSensor = true, filter = {categoryBits = 2, maskBits = 10}})
 end
 
 -- Called immediately after scene has moved onscreen:
@@ -416,18 +367,13 @@ function scene:enterScene( event )
 	createBotsTimer = timer.performWithDelay( time, createBots, 0 )
 	changeTimeTimer = timer.performWithDelay( 10000, changeCreateBotsTime, 0 )
 
-	
 	for i = 1, #regionGroup do
 		group:insert(regionGroup[i])
-	end
-	
-	for i = 1, #regionGroup do
 		regionGroup[i].collision = testCollisions
 		regionGroup[i]:addEventListener("collision", regionGroup[i])
 	end
 
 	Runtime:addEventListener("enterFrame", offScreen)
-	--Runtime:addEventListener("touch", drawSlashLine)
 end
 
 
@@ -447,7 +393,6 @@ end
 -- Called prior to the removal of scene's "view" (display group)
 function scene:destroyScene( event )
 	local group = self.view
-	
 end
 
 
