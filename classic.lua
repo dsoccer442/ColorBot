@@ -177,7 +177,7 @@ function botTouch( event )
 	  			local comboGroup = display.newGroup()
 	  			display.newText(comboGroup,"COMBO", botDragGroup[1].x, botDragGroup[1].y, native.systemFontBold, 15)
 	  			display.newText(comboGroup,"+"..#botDragGroup, botDragGroup[1].x+15, botDragGroup[1].y+15, native.systemFontBold, 15)
-	  			transition.to(comboGroup, {time = 200, x = self.x, y = self.y})
+	  			transition.to(comboGroup, {time = 1500, alpha = 0, y = comboGroup.y - 20, onComplete = function() display.remove(comboGroup) end})
   			end
   		end
     	for i = #botDragGroup, 1, -1 do
