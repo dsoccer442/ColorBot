@@ -14,13 +14,13 @@ local sprite = require("sprite")
 
 local scene = storyboard.newScene()
 
-local botGroup = display.newGroup()
+local botGroup = {}
 local regionGroup = display.newGroup()
-local botDragGroup = display.newGroup()
-local blueGroup = display.newGroup()
-local greenGroup = display.newGroup()
-local redGroup = display.newGroup()
-local yellowGroup = display.newGroup()
+local botDragGroup = {}
+local blueGroup = {}
+local greenGroup = {}
+local redGroup = {}
+local yellowGroup = {}
 
 local BOT_WIDTH = 32
 local BOT_HEIGHT = 32
@@ -98,16 +98,19 @@ end
 regionBounce = function()
 	for i = 1, #botGroup do
 		local bot = botGroup[i]
-		if (bot.placed and bot) then
-			local region = regionGroup[bot.color]
-			vx, vy = bot:getLinearVelocity()
-			if bot.changedFilter == false then
-				bot.changedFilter = true
-				physics.removeBody(bot)
-		     	physics.addBody(bot,{filter = {categoryBits = 4, maskBits = 1}})
-		     	bot.isFixedRotation = true
-		     	bot:setLinearVelocity(random(-50, 50), random(-50, 50))
-		     end
+		if bot then
+			if bot.placed then
+				local region = regionGroup[bot.color]
+				vx, vy = bot:getLinearVelocity()
+				if bot.changedFilter == false then
+					bot.changedFilter = true
+					physics.removeBody(bot)
+			     	physics.addBody(bot,{filter = {categoryBits = 4, maskBits = 1}})
+			     	bot.isFixedRotation = true
+			     	bot:setLinearVelocity(random(-50, 50), random(-50, 50))
+			     	table.remove(botGroup, i)
+			     end
+			 end
 		end
 	end
 end
@@ -169,11 +172,19 @@ function botTouch( event )
     	while(#endPoints > 0) do
    			table.remove(endPoints)
   		end
+  		if #botDragGroup > 1 then
+  			if regionGroup[botDragGroup[1].color].alpha == 1 then
+	  			local comboGroup = display.newGroup()
+	  			display.newText(comboGroup,"COMBO", botDragGroup[1].x, botDragGroup[1].y, native.systemFontBold, 15)
+	  			display.newText(comboGroup,"+"..#botDragGroup, botDragGroup[1].x+15, botDragGroup[1].y+15, native.systemFontBold, 15)
+	  			transition.to(comboGroup, {time = 200, x = self.x, y = self.y})
+  			end
+  		end
     	for i = #botDragGroup, 1, -1 do
     		local dragBot = botDragGroup[i]
     		if dragBot then
         		physics.removeBody(dragBot)
-			    physics.addBody(dragBot,{bounce = .5, density = 50, filter = {categoryBits = 2, maskBits = 2}})
+			    physics.addBody(dragBot,{bounce = .5, density = 50, filter = {categoryBits = 2, maskBits = 10}})
 			    dragBot:removeEventListener("collision", dragBot)
 			    dragBot.isFixedRotation = true
         		dragBot:release()
@@ -183,6 +194,7 @@ function botTouch( event )
     	end
     end   
 end
+--#todo reset finger swipe when bot leaves screen.
 
 createBots = function()
 
@@ -237,6 +249,7 @@ local function changeCreateBotsTime()
 	print(time) --#TODO
 end
 
+local group2 = display.newGroup()
 local function offScreen()
 	for i = 1, #botGroup do
 		local bot = botGroup[i]
@@ -248,7 +261,13 @@ local function offScreen()
 				end
 				bot:removeSelf()
 				table.remove(botGroup, i)
+				return
 			end
+			-- if bot.placed then
+			-- 	print(#botGroup)
+			-- 	table.remove(botGroup, i)
+			-- 	print(#botGroup)
+			-- end
 		end
 	end
 end
@@ -265,10 +284,11 @@ local function testCollisions(self, event)
 		        bot:removeEventListener("touch", botTouch)
 		        transition.to(bot, {time = 200, x = self.x, y = self.y})
 		        timer.performWithDelay(1,regionBounce,1)
-		        botGroup:remove(bot)
 
 		        if bot.color == 1 then
+		        	-- print(#botGroup)
 		        	table.insert(blueGroup, bot)
+		        	-- print(#botGroup)
 		        elseif bot.color == 2 then
 		        	table.insert(greenGroup, bot)
 		        elseif bot.color == 3 then
@@ -278,31 +298,41 @@ local function testCollisions(self, event)
 		       	end
 
 		       	if #blueGroup >= 5 then
-
+		       		
 		       		for i = #blueGroup, 1, -1 do
 		       			transition.to(blueGroup[i], {time = 200, x = -16})
 		       			table.remove(blueGroup, i)
+
 		       		end
+		       		
 		       	elseif #greenGroup >= 5 then
+		       		
 		       		for i = #greenGroup, 1, -1 do
 		       			transition.to(greenGroup[i], {time = 200, x = 496})
 		       			table.remove(greenGroup, i)
 		       		end
+		       		
 		       	elseif #redGroup >= 5 then
+		       		
 		       		for i = #redGroup, 1, -1 do
 		       			transition.to(redGroup[i], {time = 200, x = -16})
 		       			table.remove(redGroup, i)
 		       		end
+		       		
 		       	elseif #yellowGroup >= 5 then
+		       		
 		       		for i = #yellowGroup, 1, -1 do
 		       			transition.to(yellowGroup[i], {time = 200, x = 496})
 		       			table.remove(yellowGroup, i)
 		       		end
+		       		
 		       	end
+
+		       	-- botGroup:remove(bot)
 		    else
+		    	-- botGroup:remove(bot)
 		    	refreshLives()
 		    	bot:removeSelf()	
-		    	botGroup[bot] = nil
 		    	self.alpha = 0
 			end
 		elseif event.phase == "began" then
