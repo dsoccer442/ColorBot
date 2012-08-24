@@ -16,6 +16,7 @@ local scene = storyboard.newScene()
 
 local botGroup = {}
 local regionGroup = display.newGroup()
+local headerGroup = display.newGroup()
 local botDragGroup = {}
 local blueGroup = {}
 local greenGroup = {}
@@ -33,7 +34,8 @@ local REGION_WIDTH = 128
 local REGION_HEIGHT = 86
 local time = 3000
 local gameState = true
-local livesLeft = 3
+local lives = 3
+local score = 0
 -- Slash line properties (line that shows up when you move finger across the screen)
 local maxPoints = 5
 local lineThickness = 15
@@ -41,14 +43,16 @@ local lineFadeTime = 250
 local endPoints = {}
 
 local background = display.newImage("images/BackgroundBoundaries.png")
-local lives = display.newImage("images/lives 3.png", 20, 295)
-local score = display.newText("0", 415, 295,"Helvetica",20)
+
+local livesImage = display.newImage("images/lives 3.png")
+local scoreText = display.newText("0", 415, 0,"Helvetica",20)
 
 local random = math.random
 
 local comboDrag
 local createBots
 local createBoundary
+local createHeader
 local refreshLives
 local regionBounce
 
@@ -63,6 +67,11 @@ local yellowBotSheet = sprite.newSpriteSheet("images/Robot3Walking.png", BOT_WID
 local yellowBotSet = sprite.newSpriteSet(yellowBotSheet, 1, 10)
 local blueBotSheet = sprite.newSpriteSheet("images/Robot2Walking.png", BOT_WIDTH, BOT_WIDTH)
 local blueBotSet = sprite.newSpriteSet(blueBotSheet, 1, 10)
+
+createHeader = function()
+	headerGroup:insert(lives)
+	headerGroup:insert(scoreText)
+end
 
 createBoundary = function(left,top,width,height,thickness)
 	local upSide = display.newRect(left,top,width,thickness)
@@ -81,16 +90,16 @@ createBoundary = function(left,top,width,height,thickness)
 end
 
 refreshLives = function()
-	livesLeft = livesLeft - 1
-	lives:removeSelf()
-	if livesLeft > 0 then
-		if livesLeft == 2 then
-			lives = display.newImage("images/lives 2.png")
-		elseif livesLeft == 1 then
-			lives = display.newImage("images/lives 1.png")
+	lives = lives - 1
+	livesImage:removeSelf()
+	if lives > 0 then
+		if lives == 2 then
+			livesImage = display.newImage("images/lives 2.png")
+		elseif lives == 1 then
+			livesImage = display.newImage("images/lives 1.png")
 		end
 	else
-		lives = display.newImage("images/lives 0.png")
+		livesImage = display.newImage("images/lives 0.png")
 		storyboard.gotoScene("retry", "fade", 800)
 	end
 end
@@ -98,19 +107,17 @@ end
 regionBounce = function()
 	for i = 1, #botGroup do
 		local bot = botGroup[i]
-		if bot then
-			if bot.placed then
-				local region = regionGroup[bot.color]
-				vx, vy = bot:getLinearVelocity()
-				if bot.changedFilter == false then
-					bot.changedFilter = true
-					physics.removeBody(bot)
-			     	physics.addBody(bot,{filter = {categoryBits = 4, maskBits = 1}})
-			     	bot.isFixedRotation = true
-			     	bot:setLinearVelocity(random(-50, 50), random(-50, 50))
-			     	table.remove(botGroup, i)
-			     end
-			 end
+		if bot and bot.placed then
+			local region = regionGroup[bot.color]
+			vx, vy = bot:getLinearVelocity()
+			if bot.changedFilter == false then
+				bot.changedFilter = true
+				physics.removeBody(bot)
+		     	physics.addBody(bot,{filter = {categoryBits = 4, maskBits = 1}})
+		     	bot.isFixedRotation = true
+		     	bot:setLinearVelocity(random(-50, 50), random(-50, 50))
+		     	table.remove(botGroup, i)
+		     end
 		end
 	end
 end
@@ -197,9 +204,6 @@ end
 --#todo reset finger swipe when bot leaves screen.
 
 createBots = function()
-
-	--local botNumber = random(MIN_CREATURES, MAX_CREATURES)
-
 	for i = 1, random(MIN_CREATURES, MAX_CREATURES) do
 		local bot
 		
@@ -258,16 +262,19 @@ local function offScreen()
 				bot.y + OFFSET_Y < 0 or bot.y - OFFSET_Y > 320 then
 				if bot.placed == false then
 					refreshLives()
+					if bot.drag == true then
+						while(#endPoints > 0) do
+							table.remove(endPoints)
+						end
+						for i = 1, #botDragGroup do
+							table.remove(botDragGroup, i)
+						end
+					end
 				end
 				bot:removeSelf()
 				table.remove(botGroup, i)
 				return
 			end
-			-- if bot.placed then
-			-- 	print(#botGroup)
-			-- 	table.remove(botGroup, i)
-			-- 	print(#botGroup)
-			-- end
 		end
 	end
 end
@@ -286,9 +293,7 @@ local function testCollisions(self, event)
 		        timer.performWithDelay(1,regionBounce,1)
 
 		        if bot.color == 1 then
-		        	-- print(#botGroup)
 		        	table.insert(blueGroup, bot)
-		        	-- print(#botGroup)
 		        elseif bot.color == 2 then
 		        	table.insert(greenGroup, bot)
 		        elseif bot.color == 3 then
@@ -298,39 +303,27 @@ local function testCollisions(self, event)
 		       	end
 
 		       	if #blueGroup >= 5 then
-		       		
 		       		for i = #blueGroup, 1, -1 do
 		       			transition.to(blueGroup[i], {time = 200, x = -16})
 		       			table.remove(blueGroup, i)
-
 		       		end
-		       		
 		       	elseif #greenGroup >= 5 then
-		       		
 		       		for i = #greenGroup, 1, -1 do
 		       			transition.to(greenGroup[i], {time = 200, x = 496})
 		       			table.remove(greenGroup, i)
 		       		end
-		       		
 		       	elseif #redGroup >= 5 then
-		       		
 		       		for i = #redGroup, 1, -1 do
 		       			transition.to(redGroup[i], {time = 200, x = -16})
 		       			table.remove(redGroup, i)
 		       		end
-		       		
 		       	elseif #yellowGroup >= 5 then
-		       		
 		       		for i = #yellowGroup, 1, -1 do
 		       			transition.to(yellowGroup[i], {time = 200, x = 496})
 		       			table.remove(yellowGroup, i)
 		       		end
-		       		
 		       	end
-
-		       	-- botGroup:remove(bot)
 		    else
-		    	-- botGroup:remove(bot)
 		    	refreshLives()
 		    	bot:removeSelf()	
 		    	self.alpha = 0
@@ -343,6 +336,24 @@ local function testCollisions(self, event)
 	end
 end
 
+local dragTimeLimit = function()
+	while(#endPoints > 0) do
+		table.remove(endPoints)
+	end
+	for i = #botDragGroup, 1, -1 do
+		local dragBot = botDragGroup[i]
+		if dragBot then
+    		physics.removeBody(dragBot)
+		    physics.addBody(dragBot,{bounce = .5, density = 50, filter = {categoryBits = 2, maskBits = 10}})
+		    dragBot:removeEventListener("collision", dragBot)
+		    dragBot.isFixedRotation = true
+    		dragBot:release()
+    		table.remove(botDragGroup, i)
+    		--#TODO need to figure out what to do when the bot is deleted because the touch went offscreen. cancel touch event? (if so edit this elseif clause.)
+		end
+	end
+end
+
 comboDrag = function(self, event )
 	local bot = event.other
 	if bot.myName == "bot" and bot.drag == false and self.drag == true then
@@ -351,6 +362,7 @@ comboDrag = function(self, event )
 			bot.collision = comboDrag
 			bot:addEventListener("collision", bot)
 			table.insert(botDragGroup, bot)	
+			timer.performWithDelay(500, dragTimeLimit, 1)
 		end
 	end
 end
