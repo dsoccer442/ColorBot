@@ -12,6 +12,7 @@ local Region = require("region")
 local physics = require("physics")
 local sprite = require("sprite")
 local widget = require("widget")
+-- local graphics = require("graphics")
 
 local scene = storyboard.newScene()
 
@@ -86,6 +87,7 @@ createHeader = function()
 		onRelease = pauseGame
 	}
 	pauseButton.x = 450
+	headerGroup:insert(pauseButton)
 	headerGroup:insert(livesImage)
 	headerGroup:insert(scoreText)
 	scoreText:setReferencePoint(display.topRightReferencePoint)
@@ -198,11 +200,17 @@ function botTouch( event )
    			table.remove(endPoints)
   		end
   		if #botDragGroup > 1 then
-  			if regionGroup[botDragGroup[1].color].alpha == 1 then
-	  			local comboGroup = display.newGroup()
-	  			display.newText(comboGroup,"COMBO", botDragGroup[1].x, botDragGroup[1].y, native.systemFontBold, 15)
-	  			display.newText(comboGroup,"+"..#botDragGroup, botDragGroup[1].x+15, botDragGroup[1].y+15, native.systemFontBold, 15)
-	  			transition.to(comboGroup, {time = 1500, alpha = 0, y = comboGroup.y - 20, onComplete = function() display.remove(comboGroup) end})
+  			if regionGroup[botDragGroup[1].color].alpha == 1 then --and regionGroup[botDragGroup[1].color].color == botDragGroup[1].color then
+	  			-- local colorSum = 0
+	  			-- for i = 1, #botDragGroup do
+	  			-- 	colorSum = colorSum + botDragGroup[i].color 
+	  			--end
+		  		--if colorSum == #botDragGroup * botDragGroup[1].color then
+		  			local comboGroup = display.newGroup()
+		  			display.newText(comboGroup,"COMBO", botDragGroup[1].x, botDragGroup[1].y, native.systemFontBold, 15)
+		  			display.newText(comboGroup,"+"..#botDragGroup, botDragGroup[1].x+15, botDragGroup[1].y+15, native.systemFontBold, 15)
+		  			transition.to(comboGroup, {time = 1500, alpha = 0, y = comboGroup.y - 20, onComplete = function() display.remove(comboGroup) end})
+		  		--end
   			end
   		end
     	for i = #botDragGroup, 1, -1 do
@@ -324,6 +332,12 @@ local function testCollisions(self, event)
 		       		for i = #blueGroup, 1, -1 do
 		       			transition.to(blueGroup[i], {time = 200, x = -16})
 		       			table.remove(blueGroup, i)
+		       			-- local screen = display.captureScreen()
+		       			-- local mask = graphics.newMask("images/mask.png")
+		       			-- screen:setMask(mask)
+		       			-- screen.maskX = self.x
+		       			-- screen.maskY = self.y
+		       			-- transition.to(screen, {time = 1000, yScale = .1 })
 		       		end
 		       	elseif #greenGroup >= 5 then
 		       		for i = #greenGroup, 1, -1 do
