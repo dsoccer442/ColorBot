@@ -11,6 +11,7 @@ local Bot = require("bot")
 local Region = require("region")
 local physics = require("physics")
 local sprite = require("sprite")
+local widget = require("widget")
 
 local scene = storyboard.newScene()
 
@@ -46,6 +47,7 @@ local background = display.newImage("images/BackgroundBoundaries.png")
 
 local livesImage = display.newImage("images/lives 3.png")
 local scoreText = display.newText("0", 415, 0,"Helvetica",20)
+local pauseButton
 
 local random = math.random
 
@@ -53,6 +55,7 @@ local comboDrag
 local createBots
 local createBoundary
 local createHeader
+local pauseGame
 local refreshLives
 local regionBounce
 
@@ -68,9 +71,24 @@ local yellowBotSet = sprite.newSpriteSet(yellowBotSheet, 1, 10)
 local blueBotSheet = sprite.newSpriteSheet("images/Robot2Walking.png", BOT_WIDTH, BOT_WIDTH)
 local blueBotSet = sprite.newSpriteSet(blueBotSheet, 1, 10)
 
+pauseGame = function()
+	physics.pause()
+	timer.cancel(createBotsTimer)
+	timer.cancel(changeTimeTimer)
+	for i = 1, #botGroup do
+		botGroup[i]:removeEventListener("touch", botTouch)
+	end
+end
+
 createHeader = function()
-	headerGroup:insert(lives)
+	pauseButton = widget.newButton{
+		default="images/pause button.png",
+		onRelease = pauseGame
+	}
+	pauseButton.x = 450
+	headerGroup:insert(livesImage)
 	headerGroup:insert(scoreText)
+	scoreText:setReferencePoint(display.topRightReferencePoint)
 end
 
 createBoundary = function(left,top,width,height,thickness)
@@ -406,6 +424,8 @@ end
 function scene:enterScene( event )
 	local group = self.view
 
+	createHeader()
+
 	createBotsTimer = timer.performWithDelay( time, createBots, 0 )
 	changeTimeTimer = timer.performWithDelay( 10000, changeCreateBotsTime, 0 )
 
@@ -426,7 +446,6 @@ function scene:exitScene( event )
 		regionGroup[i]:removeEventListener("collision", regionGroup[i])
 	end
 	Runtime:removeEventListener("enterFrame", offScreen)
-	timer.cancel(createBotsTimer)
 	timer.cancel(createBotsTimer)
 	timer.cancel(changeTimeTimer)
 end
