@@ -30,6 +30,7 @@ local BOT_HEIGHT = 32
 local OFFSET_X = BOT_WIDTH * 0.5
 local OFFSET_Y = BOT_HEIGHT * 0.5
 local ANIMATION_SPEED = 100
+local EXPLOSION_SPEED = 200
 local MIN_CREATURES = 1
 local MAX_CREATURES = 3
 local REGION_WIDTH = 128
@@ -71,6 +72,8 @@ local yellowBotSheet = sprite.newSpriteSheet("images/Robot3Walking.png", BOT_WID
 local yellowBotSet = sprite.newSpriteSet(yellowBotSheet, 1, 10)
 local blueBotSheet = sprite.newSpriteSheet("images/Robot2Walking.png", BOT_WIDTH, BOT_WIDTH)
 local blueBotSet = sprite.newSpriteSet(blueBotSheet, 1, 10)
+local explosionSheet = sprite.newSpriteSheet("images/ExplosionSheet.png", BOT_WIDTH, BOT_WIDTH)
+local explosionSet = sprite.newSpriteSet(explosionSheet, 1, 5)
 
 pauseGame = function()
 	physics.pause()
@@ -280,7 +283,6 @@ local function changeCreateBotsTime()
 	print(time) --#TODO
 end
 
-local group2 = display.newGroup()
 local function offScreen()
 	for i = 1, #botGroup do
 		local bot = botGroup[i]
@@ -363,6 +365,16 @@ local function testCollisions(self, event)
 		       		end
 		       	end
 		    else
+		    	local explosion = sprite.newSprite(explosionSet)
+		    	explosion.x, explosion.y = bot.x, bot.y
+		    	explosion:prepare("explode")
+		    	explosion:play()
+
+		    	local function removeExplosion()
+					explosion:removeSelf()
+				end
+				timer.performWithDelay(EXPLOSION_SPEED, removeExplosion, 1)
+
 		    	refreshLives()
 		    	bot:removeSelf()	
 		    	self.alpha = 0
@@ -421,6 +433,8 @@ function scene:createScene( event )
 	sprite.add(greenBotSet, "drag", 6,5,ANIMATION_SPEED,0)
 	sprite.add(yellowBotSet, "drag", 6,5,ANIMATION_SPEED,0)
 	sprite.add(blueBotSet, "drag", 6,5,ANIMATION_SPEED,0)
+
+	sprite.add(explosionSet,"explode", 1, 5, EXPLOSION_SPEED,1)
 
 	physics.start()
 	physics.setGravity(0,0)
