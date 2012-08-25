@@ -39,6 +39,7 @@ local time = 3000
 local gameState = true
 local lives = 3
 local score = 0
+local wave = 0
 -- Slash line properties (line that shows up when you move finger across the screen)
 local maxPoints = 5
 local lineThickness = 15
@@ -60,6 +61,7 @@ local createHeader
 local pauseGame
 local refreshLives
 local regionBounce
+local resumeGame
 local updateScore
 
 local blueRegion, greenRegion, redRegion, yellowRegion = Region.create()
@@ -77,10 +79,19 @@ local explosionSet = sprite.newSpriteSet(explosionSheet, 1, 5)
 
 pauseGame = function()
 	physics.pause()
-	timer.cancel(createBotsTimer)
-	timer.cancel(changeTimeTimer)
+	timer.pause(createBotsTimer)
+	timer.pause(changeTimeTimer)
 	for i = 1, #botGroup do
 		botGroup[i]:removeEventListener("touch", botTouch)
+	end
+end
+
+resumeGame = function()
+	physics.resume()
+	timer.resume(createBotsTimer)
+	timer.resume(changeTimeTimer)
+	for i = 1, #botGroup do
+		botGroup[i]:addEventListener("touch", botTouch)
 	end
 end
 
@@ -281,6 +292,9 @@ local function changeCreateBotsTime()
 	timer.pause(createBotsTimer)
 	createBotsTimer = timer.performWithDelay(time, createBots, 0)
 	print(time) --#TODO
+
+	--big waves
+	waves = waves + 10
 end
 
 local function offScreen()
