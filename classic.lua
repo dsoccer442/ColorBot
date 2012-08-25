@@ -59,6 +59,7 @@ local createHeader
 local pauseGame
 local refreshLives
 local regionBounce
+local updateScore
 
 local blueRegion, greenRegion, redRegion, yellowRegion = Region.create()
 
@@ -66,7 +67,6 @@ local redBotSheet = sprite.newSpriteSheet("images/Robot4Walking.png", BOT_WIDTH,
 local redBotSet = sprite.newSpriteSet(redBotSheet, 1, 10)
 local greenBotSheet = sprite.newSpriteSheet("images/Robot1Walking.png", BOT_WIDTH, BOT_WIDTH)
 local greenBotSet = sprite.newSpriteSet(greenBotSheet, 1, 10)
-
 local yellowBotSheet = sprite.newSpriteSheet("images/Robot3Walking.png", BOT_WIDTH, BOT_WIDTH)
 local yellowBotSet = sprite.newSpriteSet(yellowBotSheet, 1, 10)
 local blueBotSheet = sprite.newSpriteSheet("images/Robot2Walking.png", BOT_WIDTH, BOT_WIDTH)
@@ -210,6 +210,7 @@ function botTouch( event )
 		  			display.newText(comboGroup,"COMBO", botDragGroup[1].x, botDragGroup[1].y, native.systemFontBold, 15)
 		  			display.newText(comboGroup,"+"..#botDragGroup, botDragGroup[1].x+15, botDragGroup[1].y+15, native.systemFontBold, 15)
 		  			transition.to(comboGroup, {time = 1500, alpha = 0, y = comboGroup.y - 20, onComplete = function() display.remove(comboGroup) end})
+		  			updateScore(#botDragGroup)
 		  		--end
   			end
   		end
@@ -305,6 +306,11 @@ local function offScreen()
 	end
 end
 
+updateScore = function(points)
+	score = score + points
+	scoreText.text = score
+end
+
 local function testCollisions(self, event)
 	local bot = event.other
 	if (bot.myName == "bot")  then
@@ -312,6 +318,7 @@ local function testCollisions(self, event)
 			if  self.color == bot.color then
 		     	
 		     	bot.placed = true
+		     	updateScore(1)
 		     	self:lightUp()
 
 		        bot:removeEventListener("touch", botTouch)
