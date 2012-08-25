@@ -110,15 +110,8 @@ function scene:createScene( event )
 	optionsBtn.x = 60
 	
 	-- create/position logo/title image on upper-half of the screen
-	local title = display.newImage("images/title.png")
-	title.xScale = 1.5
-	title.yScale = 1.5
-	title.x = 240
-	title.y = 100
 	
 	local conveyorBelt = display.newImage("conveyor belt.png")
-	conveyorBelt.x = 100
-	conveyorBelt.y = 260
 
 	local conveyorBot = display.newImage("conveyor bot.png")
 	conveyorBot.x = 0

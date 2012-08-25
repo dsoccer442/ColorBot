@@ -30,7 +30,6 @@ local BOT_HEIGHT = 32
 local OFFSET_X = BOT_WIDTH * 0.5
 local OFFSET_Y = BOT_HEIGHT * 0.5
 local ANIMATION_SPEED = 100
-local EXPLOSION_SPEED = 200
 local MIN_CREATURES = 1
 local MAX_CREATURES = 3
 local REGION_WIDTH = 128
@@ -39,7 +38,6 @@ local time = 3000
 local gameState = true
 local lives = 3
 local score = 0
-local wave = 0
 -- Slash line properties (line that shows up when you move finger across the screen)
 local maxPoints = 5
 local lineThickness = 15
@@ -61,9 +59,8 @@ local createHeader
 local pauseGame
 local refreshLives
 local regionBounce
-local resumeGame
-local updateScore
 
+<<<<<<< HEAD
 local blueRegion, greenRegion, redRegion, yellowRegion = Region.create()
 =======
 local leftDoor
@@ -74,28 +71,18 @@ local redBotSheet = sprite.newSpriteSheet("images/Robot4Walking.png", BOT_WIDTH,
 local redBotSet = sprite.newSpriteSet(redBotSheet, 1, 10)
 local greenBotSheet = sprite.newSpriteSheet("images/Robot1Walking.png", BOT_WIDTH, BOT_WIDTH)
 local greenBotSet = sprite.newSpriteSet(greenBotSheet, 1, 10)
+
 local yellowBotSheet = sprite.newSpriteSheet("images/Robot3Walking.png", BOT_WIDTH, BOT_WIDTH)
 local yellowBotSet = sprite.newSpriteSet(yellowBotSheet, 1, 10)
 local blueBotSheet = sprite.newSpriteSheet("images/Robot2Walking.png", BOT_WIDTH, BOT_WIDTH)
 local blueBotSet = sprite.newSpriteSet(blueBotSheet, 1, 10)
-local explosionSheet = sprite.newSpriteSheet("images/ExplosionSheet.png", BOT_WIDTH, BOT_WIDTH)
-local explosionSet = sprite.newSpriteSet(explosionSheet, 1, 5)
 
 pauseGame = function()
 	physics.pause()
-	timer.pause(createBotsTimer)
-	timer.pause(changeTimeTimer)
+	timer.cancel(createBotsTimer)
+	timer.cancel(changeTimeTimer)
 	for i = 1, #botGroup do
 		botGroup[i]:removeEventListener("touch", botTouch)
-	end
-end
-
-resumeGame = function()
-	physics.resume()
-	timer.resume(createBotsTimer)
-	timer.resume(changeTimeTimer)
-	for i = 1, #botGroup do
-		botGroup[i]:addEventListener("touch", botTouch)
 	end
 end
 
@@ -137,9 +124,13 @@ refreshLives = function()
 			livesImage = display.newImage("images/lives 1.png")
 		end
 	else
+<<<<<<< HEAD
 		livesImage = display.newImage("images/lives 0.png")
-		storyboard.score = score
 		storyboard.gotoScene("retry", "fade", 800)
+=======
+		lives = display.newImage("images/lives 0.png")
+		storyboard.gotoScene("retry")
+>>>>>>> a lot
 	end
 end
 
@@ -229,7 +220,6 @@ function botTouch( event )
 		  			display.newText(comboGroup,"COMBO", botDragGroup[1].x, botDragGroup[1].y, native.systemFontBold, 15)
 		  			display.newText(comboGroup,"+"..#botDragGroup, botDragGroup[1].x+15, botDragGroup[1].y+15, native.systemFontBold, 15)
 		  			transition.to(comboGroup, {time = 1500, alpha = 0, y = comboGroup.y - 20, onComplete = function() display.remove(comboGroup) end})
-		  			updateScore(#botDragGroup)
 		  		--end
   			end
   		end
@@ -297,14 +287,9 @@ local function changeCreateBotsTime()
 	timer.pause(createBotsTimer)
 	createBotsTimer = timer.performWithDelay(time, createBots, 0)
 	print(time) --#TODO
-
-	--big waves
-	waves = waves + 10
-	if waves >= 30 then
-
-	end
 end
 
+local group2 = display.newGroup()
 local function offScreen()
 	for i = 1, #botGroup do
 		local bot = botGroup[i]
@@ -330,11 +315,6 @@ local function offScreen()
 	end
 end
 
-updateScore = function(points)
-	score = score + points
-	scoreText.text = score
-end
-
 local function testCollisions(self, event)
 	local bot = event.other
 	if (bot.myName == "bot")  then
@@ -342,7 +322,6 @@ local function testCollisions(self, event)
 			if  self.color == bot.color then
 		     	
 		     	bot.placed = true
-		     	updateScore(1)
 		     	self:lightUp()
 
 		        bot:removeEventListener("touch", botTouch)
@@ -387,16 +366,6 @@ local function testCollisions(self, event)
 		       		end
 		       	end
 		    else
-		    	local explosion = sprite.newSprite(explosionSet)
-		    	explosion.x, explosion.y = bot.x, bot.y
-		    	explosion:prepare("explode")
-		    	explosion:play()
-
-		    	local function removeExplosion()
-					explosion:removeSelf()
-				end
-				timer.performWithDelay(EXPLOSION_SPEED, removeExplosion, 1)
-
 		    	refreshLives()
 		    	bot:removeSelf()	
 		    	self.alpha = 0
@@ -455,6 +424,7 @@ function scene:createScene( event )
 	group:insert(background)
 	background:toBack()
 
+<<<<<<< HEAD
 	sprite.add(redBotSet, "walking", 1,3,ANIMATION_SPEED,0)
 	sprite.add(greenBotSet, "walking", 1,3,ANIMATION_SPEED,0)
 	sprite.add(yellowBotSet, "walking", 1,3,ANIMATION_SPEED,0)
@@ -464,8 +434,6 @@ function scene:createScene( event )
 	sprite.add(greenBotSet, "drag", 6,5,ANIMATION_SPEED,0)
 	sprite.add(yellowBotSet, "drag", 6,5,ANIMATION_SPEED,0)
 	sprite.add(blueBotSet, "drag", 6,5,ANIMATION_SPEED,0)
-
-	sprite.add(explosionSet,"explode", 1, 5, EXPLOSION_SPEED,1)
 
 	physics.start()
 	physics.setGravity(0,0)

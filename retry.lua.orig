@@ -5,22 +5,9 @@
 ----------------------------------------------------------------------------------
 
 local storyboard = require( "storyboard" )
-local widget = require("widget")
 local scene = storyboard.newScene()
 
-local background = display.newImage("images/BackgroundBoundaries.png")
-local scoreText = display.newText(storyboard.score, 240, 150, native.systemFontBold, 40)
-local retryButton = widget.newButton{
-	label = "RETRY"
-}
-----------------------------------------------------------------------------------
--- 
---	NOTE:
---	
---	Code outside of listener functions (below) will only be executed once,
---	unless storyboard.removeScene() is called.
--- 
----------------------------------------------------------------------------------
+local widget = require "widget"
 
 ---------------------------------------------------------------------------------
 -- BEGINNING OF YOUR IMPLEMENTATION
@@ -95,7 +82,11 @@ end
 function scene:enterScene( event )
 	local group = self.view
 	
-	storyboard.removeScene("classic")
+	-----------------------------------------------------------------------------
+		
+	--	INSERT code here (e.g. start timers, load audio, start listeners, etc.)
+	
+	-----------------------------------------------------------------------------
 	
 end
 
