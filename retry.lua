@@ -5,8 +5,14 @@
 ----------------------------------------------------------------------------------
 
 local storyboard = require( "storyboard" )
+local widget = require("widget")
 local scene = storyboard.newScene()
 
+local background = display.newImage("images/BackgroundBoundaries.png")
+local scoreText = display.newText(storyboard.score, 240, 150, native.systemFontBold, 40)
+local retryButton = widget.newButton{
+	label = "RETRY"
+}
 ----------------------------------------------------------------------------------
 -- 
 --	NOTE:
@@ -23,7 +29,8 @@ local scene = storyboard.newScene()
 -- Called when the scene's view does not exist:
 function scene:createScene( event )
 	local group = self.view
-
+	group:insert(background)
+	group:insert(scoreText)
 	-----------------------------------------------------------------------------
 		
 	--	CREATE display objects and add them to 'group' here.
@@ -38,11 +45,7 @@ end
 function scene:enterScene( event )
 	local group = self.view
 	
-	-----------------------------------------------------------------------------
-		
-	--	INSERT code here (e.g. start timers, load audio, start listeners, etc.)
-	
-	-----------------------------------------------------------------------------
+	storyboard.removeScene("classic")
 	
 end
 

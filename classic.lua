@@ -134,6 +134,7 @@ refreshLives = function()
 		end
 	else
 		livesImage = display.newImage("images/lives 0.png")
+		storyboard.score = score
 		storyboard.gotoScene("retry", "fade", 800)
 	end
 end
@@ -295,6 +296,9 @@ local function changeCreateBotsTime()
 
 	--big waves
 	waves = waves + 10
+	if waves >= 30 then
+
+	end
 end
 
 local function offScreen()
