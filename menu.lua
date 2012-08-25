@@ -58,8 +58,6 @@ end
 function scene:createScene( event )
 	local group = self.view
 
-
-
 	-- create a widget button (which will loads level1.lua on release)
 	playBtn = widget.newButton{
 		label="p\nl\na\ny",
@@ -91,6 +89,11 @@ function scene:createScene( event )
 	background.x, background.y = 0, 0
 	
 	-- create/position logo/title image on upper-half of the screen
+	local title = display.newImage("images/title.png")
+	title.xScale = 1.5
+	title.yScale = 1.5
+	title.x = 240
+	title.y = 100
 	
 	local conveyorBelt = display.newImage("conveyor belt.png")
 	conveyorBelt.x = 100
@@ -102,6 +105,7 @@ function scene:createScene( event )
 
 	-- all display objects must be inserted into group
 	group:insert( background )
+	group:insert(title)
 	group:insert( conveyorBot )
 	group:insert( conveyorBelt )
 	group:insert( playBtn )
