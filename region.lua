@@ -3,7 +3,7 @@ local addFunctions
 local transparency = 100
 local REGION_WIDTH = 128
 local REGION_HEIGHT = 86
-RegionGroup = display.newGroup()
+RegionGroup = {}
 
 function create()
 	local blueRegion = display.newRect(0,320-REGION_HEIGHT,REGION_WIDTH,REGION_HEIGHT)
@@ -16,11 +16,19 @@ function create()
 	redRegion:setFillColor(255,0,0,transparency)
 	yellowRegion:setFillColor(255,204,0,transparency)
 
-	table.insert(RegionGroup, blueRegion)
-	table.insert(RegionGroup, greenRegion)
-	table.insert(RegionGroup, redRegion)
-	table.insert(RegionGroup, yellowRegion)
 
+if #RegionGroup == 4 then
+		for i = 1, #RegionGroup do
+			table.remove(RegionGroup, i)
+		end
+		print("ASDFSDFASDF")
+	end
+	table.insert(RegionGroup, 1,blueRegion)
+	table.insert(RegionGroup, 2,greenRegion)
+	table.insert(RegionGroup, 3,redRegion)
+	table.insert(RegionGroup, 4,yellowRegion)
+
+	
 	for i = 1, #RegionGroup do
 		RegionGroup[i].strokeWidth = 0
 		RegionGroup[i].color = i

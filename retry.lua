@@ -8,10 +8,11 @@ local storyboard = require( "storyboard" )
 local widget = require("widget")
 local scene = storyboard.newScene()
 
-local background = display.newImage("images/BackgroundBoundaries.png")
+-- local background = display.newImage("images/BackgroundBoundaries.png")
 local scoreText = display.newText(storyboard.score, 240, 150, native.systemFontBold, 40)
 local retryButton = widget.newButton{
-	label = "RETRY"
+	label = "RETRY",
+	onRelease = function() storyboard.gotoScene("classic") end
 }
 ----------------------------------------------------------------------------------
 -- 
@@ -60,6 +61,7 @@ end
 -- Called when the scene's view does not exist:
 function scene:createScene( event )
 	local group = self.view
+<<<<<<< HEAD
 
 	menuBtn = widget.newButton{
 	default="DoorR.png",
@@ -81,6 +83,11 @@ function scene:createScene( event )
 
 	scoreText = display.newRetinaText("score:"..scoreNumber, 0, 0, native.systemFont, 36)
 
+=======
+	-- group:insert(background)
+	group:insert(scoreText)
+	group:inert(retryButton)
+>>>>>>> four doors
 	-----------------------------------------------------------------------------
 		
 	--	CREATE display objects and add them to 'group' here.
@@ -94,8 +101,7 @@ end
 -- Called immediately after scene has moved onscreen:
 function scene:enterScene( event )
 	local group = self.view
-	
-	storyboard.removeScene("classic")
+		storyboard.removeScene("classic")
 	
 end
 

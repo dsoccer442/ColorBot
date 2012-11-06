@@ -15,21 +15,20 @@ local sfxBtnOff
 local musicBtn
 local musicBtnOff
 local backBtn
-local rightDoor
+local doorA
+local doorR
 local sfxLabel
 local musicLabel
+local backBtn
 
 local function delayMenuStoryboard( event )
 	storyboard.gotoScene("menu")
-	timer.performWithDelay(10, function()
-		storyboard.reloadScene()
-	end, 1)
 end
 
 local function onBackBtnRelease( event )
-	transition.to(backBtn, { x=240, time=1000 } )
-	transition.to(rightDoor, { x=480, time=1000 } )
-	timer.performWithDelay( 1000, delayMenuStoryboard, 1 )
+	transition.to(doorR, { x=240, time=700 } )
+	transition.to(doorA, { x=480, time=700 } )
+	timer.performWithDelay( 700, delayMenuStoryboard, 1 )
 	backBtn.onRelease = nil
 	return true
 end
@@ -39,10 +38,15 @@ function scene:createScene( event )
 	local group = self.view
 
 	local function openDoors()
+<<<<<<< HEAD
 		transition.to(backBtn, {x=22, time=1000 } )
 		transition.to(rightDoor, {x=698, time=1000 } )
 		print("open doors")
 
+=======
+		transition.to(doorR, {x=22, time=700 } )
+		transition.to(doorA, {x=698, time=700 } )
+>>>>>>> four doors
 		return true
 	end
 
@@ -73,19 +77,32 @@ function scene:createScene( event )
 	musicLabel = display.newRetinaText("Music", 100, 120, native.systemFont, 36)
 
 	backBtn = widget.newButton{
+<<<<<<< HEAD
 		default="DoorR.png",
 		over="DoorR.png",
 		width=240, height=320,
+=======
+		default="BackButton.png",
+		over="BackButton.png",
+>>>>>>> four doors
 		onRelease = onBackBtnRelease
 	}
-	backBtn:setReferencePoint(display.TopRightReferencePoint)
-	backBtn.x = 240
-	backBtn.y = 0
+	backBtn.x = 130
 
+	doorA = display.newImage("DoorA.png")
+	doorA:setReferencePoint(display.TopRightReferencePoint)
+	doorA.x = 480
+
+<<<<<<< HEAD
 	rightDoor = display.newImage("DoorA.png")
 	rightDoor:setReferencePoint(display.TopRightReferencePoint)
 	rightDoor.x = 480
 	rightDoor.y = 0
+=======
+	doorR = display.newImage("DoorR.png")
+	doorR:setReferencePoint(display.TopRightReferencePoint)
+	doorR.x =  240
+>>>>>>> four doors
 
 
 	timer.performWithDelay( 100, openDoors, 1 )
@@ -97,7 +114,8 @@ function scene:createScene( event )
 	group:insert(sfxLabel)
 	group:insert(musicLabel)
 	group:insert(backBtn)
-	group:insert(rightDoor)
+	group:insert(doorA)
+	group:insert(doorR)
 
 	local function changeSfx( event )
 		if sfxBtn.isVisible == true then
@@ -124,7 +142,6 @@ function scene:createScene( event )
 
 	musicBtn:addEventListener( "tap", changeMusic )
 	musicBtnOff:addEventListener( "tap", changeMusic )
-
 end
 
 -- Called immediately after scene has moved onscreen:

@@ -6,7 +6,8 @@ local storyboard = require( "storyboard" )
 local scene = storyboard.newScene()
 local widget = require "widget"
 
-
+local doorA
+local doorR
 local classicBtn
 local arcadeBtn
 local backBtn
@@ -17,9 +18,15 @@ local function delayMenuStoryboard( event )
 end
 
 local function onBackBtnRelease( event )
+<<<<<<< HEAD
 	transition.to(classicBtn, { x=240, time=1000 } )
 	transition.to(arcadeBtn, { x=480, time=1000 } )
 	timer.performWithDelay( 1000, delayMenuStoryboard, 1 )
+=======
+	transition.to(doorR, { x=240, time=700 } )
+	transition.to(doorA, { x=480, time=700 } )
+	timer.performWithDelay( 700, delayMenuStoryboard, 1)
+>>>>>>> four doors
 	backBtn.onRelease = nil
 	return true
 end
@@ -29,17 +36,18 @@ local function delayClassicStoryboard( event )
 end
 
 local function onClassicBtnRelease( event )
-	transition.to(classicBtn, { x=240, time=1000})
-	transition.to(arcadeBtn, { x=480, time=1000})
-	timer.performWithDelay( 1000, delayClassicStoryboard, 1)
+
+	transition.to(doorR, { x=240, time=700 } )
+	transition.to(doorA, { x=480, time=700 } )
+	timer.performWithDelay( 700, delayClassicStoryboard, 1)
 	classicBtn.onRelease = nil
 	return true
 end
 
 local function onArcadeBtnRelease( event )
-	transition.to(classicBtn, { x=240, time=1000})
-	transition.to(arcadeBtn, { x=480, time=1000})
-	timer.performWithDelay( 1000, delayClassicStoryboard, 1)
+	transition.to(doorR, { x=240, time=700 } )
+	transition.to(doorA, { x=480, time=700 } )
+	timer.performWithDelay( 700, delayClassicStoryboard, 1)
 	arcadeBtn.onRelease = nil
 	return true
 end
@@ -48,40 +56,69 @@ end
 function scene:createScene( event )
 	local group = self.view
 
+<<<<<<< HEAD
 	local function openDoors()
 		transition.to(classicBtn, {x=22, time=1000 } )
 		transition.to(arcadeBtn, {x=698, time=1000 } )
+=======
+	local function openDoors( event )
+		transition.to(doorR, {x=22, time=700 } )
+		transition.to(doorA, {x=698, time=700 } )
+>>>>>>> four doors
 		return true
 	end
 
 	backBtn = widget.newButton{
+<<<<<<< HEAD
 		default="backsmall.png",
 		over="backsmall.png",
 		width=50,
 		height=50,
+=======
+		default="BackButton.png",
+		over="BackButton.png",
+>>>>>>> four doors
 		onRelease = onBackBtnRelease
 	}
-	backBtn.x = 200
-	backBtn.y = 120
+	backBtn:setReferencePoint(display.CenterReferencePoint)
+	backBtn.x = display.contentWidth/2
+	backBtn.y = display.contentHeight/2
+
+	doorA = display.newImage("DoorA.png")
+	doorA:setReferencePoint(display.TopRightReferencePoint)
+	doorA.x = 480
+
+	doorR = display.newImage("DoorR.png")
+	doorR:setReferencePoint(display.TopRightReferencePoint)
+	doorR.x =  240
 
 	classicBtn = widget.newButton{
+<<<<<<< HEAD
 		default="DoorR.png",
 		over="DoorR.png",
 		width=240, height=320,
+=======
+		default="ClassicButton.png",
+		over="ClassicButton.png",
+>>>>>>> four doors
 		onRelease = onClassicBtnRelease
 	}
-	classicBtn:setReferencePoint(display.TopRightReferencePoint)
-	classicBtn.x = 240
-	classicBtn.y = 0
+	classicBtn:setReferencePoint(display.TopLeftReferencePoint)
+	classicBtn.x = 22
 
 	arcadeBtn = widget.newButton{
+<<<<<<< HEAD
 		default="DoorA.png",
 		over="DoorA.png",
 		width=240, height=320,
+=======
+		default="ArcadeButton.png",
+		over="ArcadeButton.png",
+>>>>>>> four doors
 		onRelease = onArcadeBtnRelease
 	}
 	arcadeBtn:setReferencePoint(display.TopRightReferencePoint)
-	arcadeBtn.x = 480
+	arcadeBtn.x = 480-22
 	arcadeBtn.y = 0
 
 	timer.performWithDelay( 100, openDoors, 1 )
@@ -89,6 +126,8 @@ function scene:createScene( event )
 	group:insert(backBtn)
 	group:insert(arcadeBtn)
 	group:insert(classicBtn)
+	group:insert(doorR)
+	group:insert(doorA)
 	
 end
 

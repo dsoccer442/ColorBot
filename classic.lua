@@ -25,8 +25,8 @@ local greenGroup = {}
 local redGroup = {}
 local yellowGroup = {}
 
-local BOT_WIDTH = 32
-local BOT_HEIGHT = 32
+local BOT_WIDTH = 48
+local BOT_HEIGHT = 48
 local OFFSET_X = BOT_WIDTH * 0.5
 local OFFSET_Y = BOT_HEIGHT * 0.5
 local ANIMATION_SPEED = 100
@@ -39,7 +39,7 @@ local time = 3000
 local gameState = true
 local lives = 3
 local score = 0
-local wave = 0
+local waves = 0
 -- Slash line properties (line that shows up when you move finger across the screen)
 local maxPoints = 5
 local lineThickness = 15
@@ -80,6 +80,9 @@ local blueBotSheet = sprite.newSpriteSheet("images/Robot2Walking.png", BOT_WIDTH
 local blueBotSet = sprite.newSpriteSet(blueBotSheet, 1, 10)
 local explosionSheet = sprite.newSpriteSheet("images/ExplosionSheet.png", BOT_WIDTH, BOT_WIDTH)
 local explosionSet = sprite.newSpriteSet(explosionSheet, 1, 5)
+
+local doorR
+local doorA
 
 pauseGame = function()
 	physics.pause()
@@ -204,7 +207,7 @@ function botTouch( event )
     local phase = event.phase  
     if "began" == phase then  
     	bot:pickup(event.x, event.y)
-    	bot.collision = comboDrag
+    	--#TODObot.collision = comboDrag
     	bot:addEventListener("collision", bot)
     	table.insert(botDragGroup, bot)
     	physics.removeBody(bot)
@@ -250,7 +253,8 @@ end
 --#todo reset finger swipe when bot leaves screen.
 
 createBots = function()
-	for i = 1, random(MIN_CREATURES, MAX_CREATURES) do
+	--#TODOfor i = 1, random(MIN_CREATURES, MAX_CREATURES) do
+	for i = 1, 1 do
 		local bot
 		
 		local color = random(1, 4)
@@ -274,15 +278,39 @@ createBots = function()
 		end
 		bot:addEventListener("touch", botTouch)
 		bot:play()
-		bot.x, bot.y = 240, 160
+
+		local spawn = random(1,4)
+		if spawn == 1 then
+			bot.x, bot.y = 240, BOT_HEIGHT/2
+		elseif spawn == 2 then
+			bot.x, bot.y = BOT_WIDTH/2, 160
+		elseif spawn == 3 then
+			bot.x, bot.y = 240, 320 - BOT_HEIGHT/2
+		else
+			bot.x, bot.y = 480 - BOT_WIDTH/2, 160
+		end
 		--bot:toBack()
 		--background:toBack() --FIX THIS YOU IDIOT #TODO
 
 		table.insert(botGroup, bot)
-		physics.addBody(bot,{bounce = .5, density = 50, filter = {categoryBits = 2, maskBits = 10}})
+
+		physics.addBody(bot,{bounce = .5, density = 50, filter = {categoryBits = 4, maskBits = 1}})
 		bot.isFixedRotation = true
 		Bot.create(bot)
-		bot:setLinearVelocity(random(-70, 70), random(-70, 70 ))
+
+		local verticalVelocity = random(-70, 70)
+		if verticalVelocity < 20 and verticalVelocity > 0 then
+			verticalVelocity = verticalVelocity + 50
+		elseif verticalVelocity > -20 and verticalVelocity < 0 then
+			verticalVelocity = verticalVelocity - 50
+		end
+		local horizontalVelocity = random(-70, 70)
+		if horizontalVelocity < 20 and horizontalVelocity > 0 then
+			horizontalVelocity = horizontalVelocity + 50
+		elseif horizontalVelocity > -20 and horizontalVelocity < 0 then
+			horizontalVelocity = horizontalVelocity - 50
+		end
+		bot:setLinearVelocity(horizontalVelocity, verticalVelocity)
 
 		bot.myName = "bot"
 	end
@@ -290,9 +318,9 @@ end
  
 local function changeCreateBotsTime()
 	if time > 1000 then 
-		time = time - 50
+		time = time - 500
 	elseif time > 500 then
-		time = time * .9
+		time = time * .5
 	end
 	timer.pause(createBotsTimer)
 	createBotsTimer = timer.performWithDelay(time, createBots, 0)
@@ -351,8 +379,10 @@ local function testCollisions(self, event)
 
 		        if bot.color == 1 then
 		        	table.insert(blueGroup, bot)
+		        	print("blue")
 		        elseif bot.color == 2 then
 		        	table.insert(greenGroup, bot)
+		        	print("green")
 		        elseif bot.color == 3 then
 		        	table.insert(redGroup, bot)
 		        elseif bot.color == 4 then
@@ -397,6 +427,7 @@ local function testCollisions(self, event)
 				end
 				timer.performWithDelay(EXPLOSION_SPEED, removeExplosion, 1)
 
+				print("?")
 		    	refreshLives()
 		    	bot:removeSelf()	
 		    	self.alpha = 0
@@ -455,6 +486,20 @@ function scene:createScene( event )
 	group:insert(background)
 	background:toBack()
 
+	doorA = display.newImage("DoorA.png", 240, 0)
+	doorR = display.newImage("DoorR.png")
+	group:insert(doorA)
+	group:insert(doorR)
+
+	local function openDoors( event )
+		transition.to(doorA, { x=680, time=1000 })
+		transition.to(doorR, { x=-240, time=1000 })
+		print("openDoors")
+		return true
+	end
+
+	openDoorsTimer = timer.performWithDelay(1, openDoors, 1)
+
 	sprite.add(redBotSet, "walking", 1,3,ANIMATION_SPEED,0)
 	sprite.add(greenBotSet, "walking", 1,3,ANIMATION_SPEED,0)
 	sprite.add(yellowBotSet, "walking", 1,3,ANIMATION_SPEED,0)
@@ -474,6 +519,7 @@ function scene:createScene( event )
 	createBoundary(480-REGION_WIDTH,0,REGION_WIDTH,REGION_HEIGHT,3)
 	createBoundary(0,320-REGION_HEIGHT,REGION_WIDTH,REGION_HEIGHT,3)
 	createBoundary(480-REGION_WIDTH,320-REGION_HEIGHT,REGION_WIDTH,REGION_HEIGHT,3)
+	createBoundary(0,0,480,320,3)
 
 	table.insert(regionGroup,blueRegion)
 	table.insert(regionGroup,greenRegion)
@@ -501,11 +547,11 @@ end
 -- Called immediately after scene has moved onscreen:
 function scene:enterScene( event )
 	local group = self.view
-
+	group:insert(scoreText)
 	createHeader()
 
 	createBotsTimer = timer.performWithDelay( time, createBots, 0 )
-	changeTimeTimer = timer.performWithDelay( 10000, changeCreateBotsTime, 0 )
+	changeTimeTimer = timer.performWithDelay( 1000, changeCreateBotsTime, 0 )
 
 	for i = 1, #regionGroup do
 		group:insert(regionGroup[i])
@@ -524,10 +570,25 @@ function scene:exitScene( event )
 	local group = self.view
 	for i = 1, #regionGroup do
 		regionGroup[i]:removeEventListener("collision", regionGroup[i])
+		group:insert(regionGroup[i])
+	end
+	for i = 1, #blueGroup do
+		group:insert(blueGroup[i])
+		-- blueGroup[i]:removeSelf()
+	end
+	for i = 1, #greenGroup do
+		greenGroup[i]:removeSelf()
+	end
+	for i = 1, #redGroup do
+		redGroup[i]:removeSelf()
+	end
+	for i = 1, #yellowGroup do
+		yellowGroup[i]:removeSelf()
 	end
 	Runtime:removeEventListener("enterFrame", offScreen)
 	timer.cancel(createBotsTimer)
 	timer.cancel(changeTimeTimer)
+	timer.cancel(openDoorsTimer)
 end
 
 
