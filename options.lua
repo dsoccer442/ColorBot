@@ -38,15 +38,8 @@ function scene:createScene( event )
 	local group = self.view
 
 	local function openDoors()
-<<<<<<< HEAD
-		transition.to(backBtn, {x=22, time=1000 } )
-		transition.to(rightDoor, {x=698, time=1000 } )
-		print("open doors")
-
-=======
 		transition.to(doorR, {x=22, time=700 } )
 		transition.to(doorA, {x=698, time=700 } )
->>>>>>> four doors
 		return true
 	end
 
@@ -77,14 +70,8 @@ function scene:createScene( event )
 	musicLabel = display.newRetinaText("Music", 100, 120, native.systemFont, 36)
 
 	backBtn = widget.newButton{
-<<<<<<< HEAD
-		default="DoorR.png",
-		over="DoorR.png",
-		width=240, height=320,
-=======
 		default="BackButton.png",
 		over="BackButton.png",
->>>>>>> four doors
 		onRelease = onBackBtnRelease
 	}
 	backBtn.x = 130
@@ -93,16 +80,9 @@ function scene:createScene( event )
 	doorA:setReferencePoint(display.TopRightReferencePoint)
 	doorA.x = 480
 
-<<<<<<< HEAD
-	rightDoor = display.newImage("DoorA.png")
-	rightDoor:setReferencePoint(display.TopRightReferencePoint)
-	rightDoor.x = 480
-	rightDoor.y = 0
-=======
 	doorR = display.newImage("DoorR.png")
 	doorR:setReferencePoint(display.TopRightReferencePoint)
 	doorR.x =  240
->>>>>>> four doors
 
 
 	timer.performWithDelay( 100, openDoors, 1 )

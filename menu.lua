@@ -30,16 +30,6 @@ end
 
 -- 'onRelease' event listener for playBtn
 local function onPlayBtnRelease()
-<<<<<<< HEAD
-	transition.to(playBtn, { x= 480, time=1000 })
-	transition.to(optionsBtn, {x = 240, time=1000 })
-	timer.performWithDelay( 1000, delayPlayStoryboard, 1)
-<<<<<<< HEAD
-	playBtn.onRelease = nil	
-=======
-	playBtn.onRelease = nil
->>>>>>> a lot
-=======
 	transition.to(doorR, { x=240, time=700 } )
 	transition.to(doorA, { x=480, time=700 } )
 	timer.performWithDelay( 700, delayPlayStoryboard, 1)
@@ -48,7 +38,6 @@ local function onPlayBtnRelease()
 
 	playBtn.onRelease = nil
 
->>>>>>> four doors
 	return true	-- indicates successful touch
 end
 
@@ -57,17 +46,9 @@ local function delayOptionsStoryboard( event )
 end
 
 local function onOptionButtonRelease()
-<<<<<<< HEAD
-	transition.to(playBtn, { alpha=0, time=500 })
-	transition.to(optionsBtn, { alpha=0, time=500 })
-	transition.to(doorR, { x= 240, time=700 })
-	transition.to(doorA, { x= 240, time=700 })
-	timer.performWithDelay( 1000, delayOptionsStoryboard, 1)
-=======
 	transition.to(doorR, { x=240, time=700 } )
 	transition.to(doorA, { x=480, time=700 } )
 	timer.performWithDelay( 700, delayOptionsStoryboard, 1)
->>>>>>> four doors
 	optionsBtn.onRelease = nil
 	return true
 end
@@ -87,28 +68,6 @@ function scene:createScene( event )
 
 	-- create a widget button (which will loads level1.lua on release)
 	
-<<<<<<< HEAD
-
-	doorR = display.newImage("DoorR.png")
-	doorR:setReferencePoint(display.TopRightReferencePoint)
-
-	doorA = display.newImage("DoorA.png")
-	doorA:setReferencePoint(display.TopLeftReferencePoint)
-	doorA.x = 240
-
-
-	playBtn = widget.newButton{
-<<<<<<< HEAD
-		label="p\nl\na\ny",
-		xOffset=-70,
-		default="button.png",
-		over="button.png",
-		width=240, height=320,
-=======
-		default="PlayButton.png",
-		over="PlayButton.png",
->>>>>>> a lot
-=======
 	doorA = display.newImage("DoorA.png")
 	doorA:setReferencePoint(display.TopRightReferencePoint)
 	doorA.x = 480
@@ -121,27 +80,13 @@ function scene:createScene( event )
 	playBtn = widget.newButton{
 		default="PlayButton.png",
 		over="PlayButton.png",
->>>>>>> four doors
 		onRelease = onPlayBtnRelease	-- event listener function
 	}
 	playBtn.x = 420
 
 	optionsBtn = widget.newButton{
-<<<<<<< HEAD
-<<<<<<< HEAD
-		label="o\np\nt\ni\no\nn\ns",
-		xOffset=70,
-		default = "options.png",
-		over="options.png",
-		width=240, height=320,
-=======
 		default = "OptionsButton.png",
 		over="OptionsButton.png",
->>>>>>> a lot
-=======
-		default = "OptionsButton.png",
-		over="OptionsButton.png",
->>>>>>> four doors
 		onRelease = onOptionButtonRelease
 	}
 	optionsBtn.x = 60
@@ -163,14 +108,9 @@ function scene:createScene( event )
 	group:insert( doorA )
 	
 	local function openDoors( event )
-<<<<<<< HEAD
-		transition.to(doorR, {x=22, time=700})
-		transition.to(doorA, {x=458, time=700})
-=======
 		transition.to(doorR, {x=22, time=700 } )
 		transition.to(doorA, {x=698, time=700 } )
 		return true
->>>>>>> four doors
 	end
 
 	local function moveConveyorBot()

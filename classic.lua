@@ -65,10 +65,6 @@ local resumeGame
 local updateScore
 
 local blueRegion, greenRegion, redRegion, yellowRegion = Region.create()
-=======
-local leftDoor
-local rightDoor
->>>>>>> a lot
 
 local redBotSheet = sprite.newSpriteSheet("images/Robot4Walking.png", BOT_WIDTH, BOT_WIDTH)
 local redBotSet = sprite.newSpriteSet(redBotSheet, 1, 10)
@@ -471,15 +467,6 @@ comboDrag = function(self, event )
 	end
 end
 
-<<<<<<< HEAD
-=======
-local function openDoors( event )
-	transition.to(leftDoor, { x=-240, time=700 })
-	transition.to(rightDoor, { x=680, time=700 })
-end
-
-
->>>>>>> a lot
 -- Called when the scene's view does not exist:
 function scene:createScene( event )
 	local group = self.view
@@ -530,18 +517,6 @@ function scene:createScene( event )
 	physics.addBody(greenRegion,{isSensor = true, filter = {categoryBits = 2, maskBits = 10}})
 	physics.addBody(redRegion,{isSensor = true, filter = {categoryBits = 2, maskBits = 10}})
 	physics.addBody(yellowRegion,{isSensor = true, filter = {categoryBits = 2, maskBits = 10}})
-=======
-	leftDoor = display.newImage("DoorR.png")
-	leftDoor:setReferencePoint(TopLeftReferencePoint)
-	rightDoor = display.newImage("DoorA.png", 240, 0)
-	rightDoor:setReferencePoint(TopLeftReferencePoint)
-
-	group:insert(leftDoor)
-	group:insert(rightDoor)
-
-	timer.performWithDelay(1, openDoors, 1)
-
->>>>>>> a lot
 end
 
 -- Called immediately after scene has moved onscreen:
@@ -560,8 +535,6 @@ function scene:enterScene( event )
 	end
 
 	Runtime:addEventListener("enterFrame", offScreen)
-
-	storyboard.removeAll()
 end
 
 
