@@ -236,7 +236,7 @@ function botTouch( event )
     		local dragBot = botDragGroup[i]
     		if dragBot then
         		physics.removeBody(dragBot)
-			    physics.addBody(dragBot,{bounce = .5, density = 50, filter = {categoryBits = 2, maskBits = 10}})
+			    physics.addBody(dragBot,{bounce = .5, density = 50, filter = {categoryBits = 4, maskBits = 3}})
 			    dragBot:removeEventListener("collision", dragBot)
 			    dragBot.isFixedRotation = true
         		dragBot:release()
@@ -248,8 +248,19 @@ function botTouch( event )
 end
 --#todo reset finger swipe when bot leaves screen.
 
+gameOver = function()
+local loser = display.newText("GAME OVER", 30, 100,"Helvetica",70)
+	for i = 1, #botGroup do
+			botGroup[i]:removeEventListener("touch", botTouch)
+	end
+end
+
 createBots = function()
 	--#TODOfor i = 1, random(MIN_CREATURES, MAX_CREATURES) do
+	if #botGroup > 20 then
+	gameOver()
+	return
+	end
 	for i = 1, 1 do
 		local bot
 		
@@ -444,7 +455,7 @@ local dragTimeLimit = function()
 		local dragBot = botDragGroup[i]
 		if dragBot then
     		physics.removeBody(dragBot)
-		    physics.addBody(dragBot,{bounce = .5, density = 50, filter = {categoryBits = 2, maskBits = 10}})
+		    physics.addBody(dragBot,{bounce = .5, density = 50, filter = {categoryBits = 4, maskBits = 1}})
 		    dragBot:removeEventListener("collision", dragBot)
 		    dragBot.isFixedRotation = true
     		dragBot:release()
@@ -513,10 +524,10 @@ function scene:createScene( event )
 	table.insert(regionGroup,redRegion)
 	table.insert(regionGroup,yellowRegion)
 
-	physics.addBody(blueRegion,{isSensor = true, filter = {categoryBits = 2, maskBits = 10}})
-	physics.addBody(greenRegion,{isSensor = true, filter = {categoryBits = 2, maskBits = 10}})
-	physics.addBody(redRegion,{isSensor = true, filter = {categoryBits = 2, maskBits = 10}})
-	physics.addBody(yellowRegion,{isSensor = true, filter = {categoryBits = 2, maskBits = 10}})
+	physics.addBody(blueRegion,{isSensor = true, filter = {categoryBits = 2, maskBits = 14}})
+	physics.addBody(greenRegion,{isSensor = true, filter = {categoryBits = 2, maskBits = 14}})
+	physics.addBody(redRegion,{isSensor = true, filter = {categoryBits = 2, maskBits = 14}})
+	physics.addBody(yellowRegion,{isSensor = true, filter = {categoryBits = 2, maskBits = 14}})
 end
 
 -- Called immediately after scene has moved onscreen:
@@ -557,6 +568,10 @@ function scene:exitScene( event )
 	end
 	for i = 1, #yellowGroup do
 		yellowGroup[i]:removeSelf()
+	end
+	for i = 1, #botGroup do
+		-- group:insert(botGroup[i])
+		botGroup[i]:removeSelf()
 	end
 	Runtime:removeEventListener("enterFrame", offScreen)
 	timer.cancel(createBotsTimer)

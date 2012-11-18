@@ -32,7 +32,7 @@ function scene:createScene( event )
 	local group = self.view
 	-- group:insert(background)
 	group:insert(scoreText)
-	group:inert(retryButton)
+	group:insert(retryButton)
 	-----------------------------------------------------------------------------
 		
 	--	CREATE display objects and add them to 'group' here.
@@ -46,8 +46,7 @@ end
 -- Called immediately after scene has moved onscreen:
 function scene:enterScene( event )
 	local group = self.view
-		storyboard.removeScene("classic")
-	
+	storyboard.removeScene("classic")
 end
 
 

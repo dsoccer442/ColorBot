@@ -8,11 +8,18 @@ function create(obj)
   function obj:pickup(x,y)
   obj.drag = true
   display.getCurrentStage():setFocus( obj )  
-
   -- Store initial position  
-  obj.x0 = x - obj.x  
-  obj.y0 = y - obj.y  
-    
+  -- if x < 0 or x > 480 then
+  -- obj.x0 = obj.x
+  -- print "x is out of view"
+  -- else
+  obj.x0 = x - obj.x   
+-- end
+-- if y < 0 or y > 320 then
+  -- obj.y0 = obj.y
+  -- else
+obj.y0 = y - obj.y  
+-- end
   -- -- Avoid gravitational forces  
    obj.bodyType = "kinematic"  
     
@@ -28,8 +35,12 @@ function create(obj)
   end
   function obj:move(x,y)
   	if obj.drag == true then
+      if (x - obj.x0)  > 0 and (x - obj.x0) < 480 then
   		obj.x = x - obj.x0  
+    end
+      if  y - obj.y0 > 0 and y - obj.y0 < 320 then
             obj.y = y - obj.y0  
+          end
   	end
   end
   function obj:release()

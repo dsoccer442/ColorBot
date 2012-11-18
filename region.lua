@@ -1,8 +1,8 @@
 module(..., package.seeall)
 local addFunctions
 local transparency = 100
-local REGION_WIDTH = 128
-local REGION_HEIGHT = 86
+local REGION_WIDTH = 125
+local REGION_HEIGHT = 83
 RegionGroup = {}
 
 function create()
