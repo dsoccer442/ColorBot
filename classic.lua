@@ -324,11 +324,12 @@ createBots = function()
 end
  
 local function changeCreateBotsTime()
-	if time > 1000 then 
-		time = time - 500
-	elseif time > 500 then
-		time = time * .5
-	end
+	-- if time > 1000 then 
+	-- 	time = time - 500
+	-- else
+	-- 	time = time * .
+	-- end
+	time = time * .75
 	timer.pause(createBotsTimer)
 	createBotsTimer = timer.performWithDelay(time, createBots, 0)
 	print(time) --#TODO
